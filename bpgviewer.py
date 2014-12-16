@@ -28,7 +28,7 @@ def bpggetcmd(scriptname):
 def bpgdecode(cmd,filename):
     try:
         if not(isfile(filename) and access(filename,R_OK)): exit()
-        t,p=mkstemp(suffix='.ppm',prefix='')
+        t,p=mkstemp(suffix='.png',prefix='')
         close(t)
         remove(p)
     except: exit()
