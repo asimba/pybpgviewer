@@ -63,21 +63,25 @@ def bpgdecode(cmd,filename):
     p=''
     if len(filename)>4 and filename[-4:].lower()=='.bpg':
         try:
-            if not(isfile(filename) and access(filename,R_OK)): exit()
-            t,p=mkstemp(suffix='.png',prefix='')
-            close(t)
-            remove(p)
+            if not(isfile(filename) and access(filename,R_OK)):
+                msg='Unable to open \"%s\"!'%filename
+            else:
+                t,p=mkstemp(suffix='.png',prefix='')
+                close(t)
+                remove(p)
         except: exit()
-        cmd+=p+' '+realpath(filename)
-        try:
-            f=Popen(cmd,shell=True,stdin=None,stdout=None,stderr=None)
-            f.wait()
-        except: msg='BPG decoding error!\n'
-        if not(isfile(p)) or stat(p).st_size==0:
-            msg='Unable to open: \"%s\"!'%filename
-            p=''
-    else:
-        msg='File \"%s\" in not a BPG-File!'%filename
+        if not(msg):
+            cmd+=p+' '+realpath(filename)
+            try:
+                f=Popen(cmd,shell=True,stdin=None,stdout=None,stderr=None)
+                f.wait()
+            except: msg='BPG decoding error!\n'
+            if not(msg):
+                if not(isfile(p)) or stat(p).st_size==0:
+                    msg='Unable to open: \"%s\"!'%filename
+                    p=''
+        else: p=''
+    else: msg='File \"%s\" in not a BPG-File!'%filename
     if msg:
         print msg
         errmsgbox(msg)
