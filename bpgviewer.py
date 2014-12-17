@@ -122,20 +122,21 @@ class DFrame(wx.Frame):
                     dx=float(crect[2])/float(bitmap.GetWidth())
                 if bitmap.GetHeight()>crect[3]:
                     dy=float(crect[3])/float(bitmap.GetHeight())
-                if dx>dy:
-                    self.SetSize((400,crect[3]))
-                    wsize=self.GetClientSize()
-                    dy=float(wsize[1])/float(bitmap.GetHeight())
-                    x=bitmap.GetWidth()*dy
-                    y=bitmap.GetHeight()*dy
-                    self.scale=dy*100
-                else:
-                    self.SetSize((crect[2],300))
-                    wsize=self.GetClientSize()
-                    dx=float(wsize[0])/float(bitmap.GetWidth())
-                    x=bitmap.GetWidth()*dx
-                    y=bitmap.GetHeight()*dx
-                    self.scale=dx*100
+                if dx or dy:
+                    if dx>dy:
+                        self.SetSize((400,crect[3]))
+                        wsize=self.GetClientSize()
+                        dy=float(wsize[1])/float(bitmap.GetHeight())
+                        x=bitmap.GetWidth()*dy
+                        y=bitmap.GetHeight()*dy
+                        self.scale=dy*100
+                    else:
+                        self.SetSize((crect[2],300))
+                        wsize=self.GetClientSize()
+                        dx=float(wsize[0])/float(bitmap.GetWidth())
+                        x=bitmap.GetWidth()*dx
+                        y=bitmap.GetHeight()*dx
+                        self.scale=dx*100
                 if x and y: bitmap=scale_bitmap(bitmap,x,y)
                 self.bitmap=wx.StaticBitmap(self.panel,-1,bitmap)
                 self.imginfo='%.2f'%self.scale+'%@'+self.bitmap_text
