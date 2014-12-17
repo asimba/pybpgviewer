@@ -118,14 +118,21 @@ class DFrame(wx.Frame):
         if x and y: bitmap=scale_bitmap(bitmap,x,y)
         self.bitmap=wx.StaticBitmap(self,-1,bitmap)
         self.SetFocus()
-        self.bitmap.SetToolTipString('%.2f'%self.scale+'%@'+self.bitmap_text)
+        self.imginfo='%.2f'%self.scale+'%@'+self.bitmap_text
+        self.bitmap.SetToolTipString(self.imginfo)
+        self.Title+=' ('+self.imginfo+')'
         grid_sizer=wx.GridSizer(1,1,0,0)
         grid_sizer.Add(self.bitmap,0,wx.ALIGN_CENTER_HORIZONTAL|\
             wx.ALIGN_CENTER_VERTICAL,0)
         self.SetSizer(grid_sizer)
         grid_sizer.Fit(self)
+        self.Bind(wx.EVT_KEY_DOWN,self.keypress)
         self.Layout()
         self.Center()
+
+    def keypress(self,event):
+        keycode=event.GetKeyCode()
+        if keycode==wx.WXK_ESCAPE: self.Close()
 
 class bpgframe(wx.App):
     def __init__(self,parent,title,pngfile):
