@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 from sys import argv,exit
-from os import access,R_OK,stat,close,remove
-from os.path import exists,isfile,dirname,realpath,join,walk
+from os import walk,access,R_OK,stat,close,remove
+from os.path import exists,isfile,dirname,realpath,join
 from tempfile import mkstemp
 from subprocess import Popen,PIPE,STDOUT
 from platform import system
@@ -60,7 +60,7 @@ def bpggetcmd(scriptname):
 
 def bpgdecode(cmd,filename):
     msg=None
-    p=None
+    p=''
     if len(filename)>4 and filename[-4:].lower()=='.bpg':
         try:
             if not(isfile(filename) and access(filename,R_OK)): exit()
@@ -75,7 +75,7 @@ def bpgdecode(cmd,filename):
         except: msg='BPG decoding error!\n'
         if not(isfile(p)) or stat(p).st_size==0:
             msg='Unable to open: \"%s\"!'%filename
-            p=None
+            p=''
     else:
         msg='File \"%s\" in not a BPG-File!'%filename
     if msg:
@@ -101,8 +101,15 @@ class DFrame(wx.Frame):
             except: pass
             self.pngfile=''
         if len(filename): self.pngfile=bpgdecode(self.bpgpath,filename)
-        else: self.pngfile=None
-        if self.pngfile:
+        else: self.pngfile=''
+        if len(self.pngfile):
+            if len(self.filelist)==0:
+                self.filelist=self.getfilelist(dirname(realpath(filename)))
+                self.index=0
+                while(True):
+                    if self.filelist[self.index]==realpath(filename): break
+                    else: self.index+=1
+                    if self.index>=len(self.filelist): break
             try: bitmap=wx.Bitmap(self.pngfile)
             except: bitmap=None
             if bitmap:
@@ -130,7 +137,7 @@ class DFrame(wx.Frame):
                     y=bitmap.GetHeight()*dx
                     self.scale=dx*100
                 if x and y: bitmap=scale_bitmap(bitmap,x,y)
-                self.bitmap=wx.StaticBitmap(self,-1,bitmap)
+                self.bitmap=wx.StaticBitmap(self.panel,-1,bitmap)
                 self.imginfo='%.2f'%self.scale+'%@'+self.bitmap_text
                 self.bitmap.SetToolTipString(self.imginfo)
                 self.grid_sizer.Add(self.bitmap,0,wx.ALIGN_CENTER_HORIZONTAL|\
@@ -138,10 +145,24 @@ class DFrame(wx.Frame):
                 self.Layout()
                 self.Fit()
                 self.Update()
-        else: self.bitmap=None
+                wx.CallAfter(self.Center)
+        else:
+            self.bitmap=None
+            self.imginfo=''
         if len(self.imginfo): self.Title=filename+' ('+self.imginfo+')'
         else: self.Title='Press Ctrl+O to open BPG file...'
-        wx.CallAfter(self.Center)
+
+    def getfilelist(self,dirname):
+        filelist=[]
+        for root,dirs,files in walk(dirname,topdown=False):
+            if root==dirname:
+                for f in sorted(files):
+                    fname=realpath(join(root,f))
+                    try:
+                        if access(fname,R_OK) and fname[-4:].lower()=='.bpg':
+                            filelist.append(fname)
+                    except: pass
+        return filelist
 
     def __init__(self,parent,scriptpath,title):
         kwds={}
@@ -156,35 +177,67 @@ class DFrame(wx.Frame):
         self.bitmap_text=''
         self.imginfo=''
         self.pngfile=''
+        self.filelist=[]
+        self.index=0
+        self.panel=wx.Panel(self,style=wx.WANTS_CHARS)
+        self.sizer=wx.BoxSizer(wx.VERTICAL)
         self.grid_sizer=wx.GridSizer(1,1,0,0)
+        self.panel.SetSizer(self.grid_sizer)
         self.SetMinSize((400,300))
-        self.SetSizer(self.grid_sizer)
+        self.sizer.Add(self.panel,1,wx.EXPAND,0)
+        self.SetSizer(self.sizer)
         self.showimage(title)
-        self.SetFocus()
-        self.grid_sizer.Fit(self)
-        self.Bind(wx.EVT_KEY_DOWN,self.keydown)
-        self.Bind(wx.EVT_CHAR,self.keychar)
+        self.sizer.Fit(self)
+        self.panel.Bind(wx.EVT_KEY_DOWN,self.keydown)
+        self.panel.Bind(wx.EVT_CHAR,self.keychar)
         self.Layout()
         self.Center()
+        self.panel.SetFocus()
 
     def keydown(self,event):
         keycode=event.GetKeyCode()
         if keycode==wx.WXK_ESCAPE:
             self.Close()
             return
+        if keycode==wx.WXK_PAGEDOWN or keycode==wx.WXK_NUMPAD_PAGEDOWN:
+            if len(self.filelist):
+                old=self.index
+                if self.index: self.index-=1
+                else: self.index=len(self.filelist)-1
+                if self.index!=old:
+                    self.Title='Loading...'
+                    self.Layout()
+                    self.Update()
+                    self.showimage(self.filelist[self.index])
+            return
+        if keycode==wx.WXK_PAGEUP or keycode==wx.WXK_NUMPAD_PAGEUP:
+            if len(self.filelist):
+                old=self.index
+                if self.index<len(self.filelist)-1: self.index+=1
+                else: self.index=0
+                if self.index!=old:
+                    self.Title='Loading...'
+                    self.Layout()
+                    self.Update()
+                    self.showimage(self.filelist[self.index])
+            return
         event.Skip()
 
     def keychar(self,event):
         keycode=event.GetUniChar()
-        if keycode==wx.WXK_CONTROL_O:
+        try: co_code=wx.WXK_CONTROL_O
+        except: co_code=15
+        if keycode==co_code:
             openFileDialog = wx.FileDialog(self,'Open BPG file',"", "",\
                 "BPG files (*.bpg)|*.bpg",wx.FD_OPEN|wx.FD_FILE_MUST_EXIST)
-        status=openFileDialog.ShowModal()
-        if status==wx.ID_CANCEL: return
-        if status==wx.ID_OK:
-            self.Title='Loading...'
-            self.showimage(openFileDialog.GetPath())
-            openFileDialog.Destroy()
+            status=openFileDialog.ShowModal()
+            if status==wx.ID_CANCEL: return
+            if status==wx.ID_OK:
+                self.Title='Loading...'
+                self.Layout()
+                self.Update()
+                self.showimage(openFileDialog.GetPath())
+                openFileDialog.Destroy()
         event.Skip()
 
     def __del__(self):
@@ -200,7 +253,7 @@ class bpgframe(wx.App):
         frame.Show()
 
 if __name__=='__main__':
+    wxapp=True
     if len(argv)==1: app=bpgframe(None,argv[0],'')
     else: app=bpgframe(None,argv[0],realpath(argv[1]))
-    wxapp=True
     app.MainLoop()
