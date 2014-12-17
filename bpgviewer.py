@@ -3,7 +3,7 @@
 
 from sys import argv,exit
 from os import access,R_OK,stat,close,remove
-from os.path import exists,isfile,dirname,realpath,join
+from os.path import exists,isfile,dirname,realpath,join,walk
 from tempfile import mkstemp
 from subprocess import Popen,PIPE,STDOUT
 from platform import system
@@ -61,7 +61,7 @@ def bpggetcmd(scriptname):
 def bpgdecode(cmd,filename):
     msg=None
     p=None
-    if len(filename)>4 and filename[-4:]=='.bpg':
+    if len(filename)>4 and filename[-4:].lower()=='.bpg':
         try:
             if not(isfile(filename) and access(filename,R_OK)): exit()
             t,p=mkstemp(suffix='.png',prefix='')
@@ -90,49 +90,107 @@ def scale_bitmap(bitmap,width,height):
     return result
 
 class DFrame(wx.Frame):
-    def __init__(self,parent,title,pngfile):
+    def showimage(self,filename):
+        if self.bitmap:
+            self.Layout()
+            self.Refresh()
+            self.bitmap.Destroy()
+            self.bitmap=None
+        if len(self.pngfile):
+            try: remove(self.pngfile)
+            except: pass
+            self.pngfile=''
+        if len(filename): self.pngfile=bpgdecode(self.bpgpath,filename)
+        else: self.pngfile=None
+        if self.pngfile:
+            try: bitmap=wx.Bitmap(self.pngfile)
+            except: bitmap=None
+            if bitmap:
+                crect=wx.Display().GetClientArea()
+                dx,dy=0.0,0.0
+                x,y=0,0
+                self.bitmap_text=str(bitmap.GetWidth())+'x'+\
+                    str(bitmap.GetHeight())
+                if bitmap.GetWidth()>crect[2]:
+                    dx=float(crect[2])/float(bitmap.GetWidth())
+                if bitmap.GetHeight()>crect[3]:
+                    dy=float(crect[3])/float(bitmap.GetHeight())
+                if dx>dy:
+                    self.SetSize((400,crect[3]))
+                    wsize=self.GetClientSize()
+                    dy=float(wsize[1])/float(bitmap.GetHeight())
+                    x=bitmap.GetWidth()*dy
+                    y=bitmap.GetHeight()*dy
+                    self.scale=dy*100
+                else:
+                    self.SetSize((crect[2],300))
+                    wsize=self.GetClientSize()
+                    dx=float(wsize[0])/float(bitmap.GetWidth())
+                    x=bitmap.GetWidth()*dx
+                    y=bitmap.GetHeight()*dx
+                    self.scale=dx*100
+                if x and y: bitmap=scale_bitmap(bitmap,x,y)
+                self.bitmap=wx.StaticBitmap(self,-1,bitmap)
+                self.imginfo='%.2f'%self.scale+'%@'+self.bitmap_text
+                self.bitmap.SetToolTipString(self.imginfo)
+                self.grid_sizer.Add(self.bitmap,0,wx.ALIGN_CENTER_HORIZONTAL|\
+                    wx.ALIGN_CENTER_VERTICAL,0)
+                self.Layout()
+                self.Fit()
+                self.Update()
+        else: self.bitmap=None
+        if len(self.imginfo): self.Title=filename+' ('+self.imginfo+')'
+        else: self.Title='Press Ctrl+O to open BPG file...'
+        wx.CallAfter(self.Center)
+
+    def __init__(self,parent,scriptpath,title):
         kwds={}
         args=[]
         kwds["style"]=wx.DEFAULT_FRAME_STYLE
         kwds["title"]=title
         kwds["parent"]=parent
         wx.Frame.__init__(self,*args,**kwds)
-        bitmap=wx.Bitmap(pngfile)
-        crect=wx.Display().GetClientArea()
-        dx,dy=0.0,0.0
-        x,y=0,0
+        self.bpgpath=bpggetcmd(scriptpath)
         self.scale=100.0
-        self.bitmap_text=str(bitmap.GetWidth())+'x'+str(bitmap.GetHeight())
-        if bitmap.GetWidth()>crect[2]:
-            dx=float(crect[2])/float(bitmap.GetWidth())
-        if bitmap.GetHeight()>crect[3]:
-            dy=float(crect[3])/float(bitmap.GetHeight())
-        if dx>dy:
-            x=bitmap.GetWidth()*dy
-            y=bitmap.GetHeight()*dy
-            self.scale=dy*100
-        else:
-            x=bitmap.GetWidth()*dx
-            y=bitmap.GetHeight()*dx
-            self.scale=dx*100
-        if x and y: bitmap=scale_bitmap(bitmap,x,y)
-        self.bitmap=wx.StaticBitmap(self,-1,bitmap)
+        self.bitmap=None
+        self.bitmap_text=''
+        self.imginfo=''
+        self.pngfile=''
+        self.grid_sizer=wx.GridSizer(1,1,0,0)
+        self.SetMinSize((400,300))
+        self.SetSizer(self.grid_sizer)
+        self.showimage(title)
         self.SetFocus()
-        self.imginfo='%.2f'%self.scale+'%@'+self.bitmap_text
-        self.bitmap.SetToolTipString(self.imginfo)
-        self.Title+=' ('+self.imginfo+')'
-        grid_sizer=wx.GridSizer(1,1,0,0)
-        grid_sizer.Add(self.bitmap,0,wx.ALIGN_CENTER_HORIZONTAL|\
-            wx.ALIGN_CENTER_VERTICAL,0)
-        self.SetSizer(grid_sizer)
-        grid_sizer.Fit(self)
-        self.Bind(wx.EVT_KEY_DOWN,self.keypress)
+        self.grid_sizer.Fit(self)
+        self.Bind(wx.EVT_KEY_DOWN,self.keydown)
+        self.Bind(wx.EVT_CHAR,self.keychar)
         self.Layout()
         self.Center()
 
-    def keypress(self,event):
+    def keydown(self,event):
         keycode=event.GetKeyCode()
-        if keycode==wx.WXK_ESCAPE: self.Close()
+        if keycode==wx.WXK_ESCAPE:
+            self.Close()
+            return
+        event.Skip()
+
+    def keychar(self,event):
+        keycode=event.GetUniChar()
+        if keycode==wx.WXK_CONTROL_O:
+            openFileDialog = wx.FileDialog(self,'Open BPG file',"", "",\
+                "BPG files (*.bpg)|*.bpg",wx.FD_OPEN|wx.FD_FILE_MUST_EXIST)
+        status=openFileDialog.ShowModal()
+        if status==wx.ID_CANCEL: return
+        if status==wx.ID_OK:
+            self.Title='Loading...'
+            self.showimage(openFileDialog.GetPath())
+            openFileDialog.Destroy()
+        event.Skip()
+
+    def __del__(self):
+        if len(self.pngfile):
+            try: remove(self.pngfile)
+            except: pass
 
 class bpgframe(wx.App):
     def __init__(self,parent,title,pngfile):
@@ -142,12 +200,7 @@ class bpgframe(wx.App):
         frame.Show()
 
 if __name__=='__main__':
-    if len(argv)==1: exit()
-    bpgpath=bpggetcmd(argv[0])
-    pngfile=bpgdecode(bpgpath,argv[1])
-    if pngfile:
-        app=bpgframe(None,realpath(argv[1]),pngfile)
-        wxapp=True
-        app.MainLoop()
-        try: remove(pngfile)
-        except: pass
+    if len(argv)==1: app=bpgframe(None,argv[0],'')
+    else: app=bpgframe(None,argv[0],realpath(argv[1]))
+    wxapp=True
+    app.MainLoop()
