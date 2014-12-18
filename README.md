@@ -13,7 +13,7 @@ _Note:_ large images will be scaled to fit screen area.
 _Usage:_ python bpgviewer.py input.bpg (Or just run 'python bpgviewer.py' and then use 'Ctrl-O' to open BPG image file).  
 
 _Hot keys:_  
-Key  | Action
+Key  | Action  
 -----|------
 test | test
 
