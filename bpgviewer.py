@@ -1,11 +1,36 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+'''
+Simple BPG Image viewer.
+
+Copyright (c) 2014, Alexey Simbarsky
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+* Redistributions of source code must retain the above copyright notice, this
+list of conditions and the following disclaimer.
+* Redistributions in binary form must reproduce the above copyright notice,
+this list of conditions and the following disclaimer in the documentation
+and/or other materials provided with the distribution.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+'''
 
 from sys import argv,exit
 from os import walk,access,R_OK,stat,close,remove
-from os.path import exists,isfile,dirname,realpath,join
+from os.path import exists,isfile,dirname,basename,realpath,join
 from tempfile import mkstemp
 from subprocess import Popen,PIPE,STDOUT
+from shutil import copyfile
 from platform import system
 
 osflag=True
@@ -204,7 +229,9 @@ class DFrame(wx.Frame):
         if keycode==wx.WXK_ESCAPE:
             self.Close()
             return
-        if keycode==wx.WXK_PAGEDOWN or keycode==wx.WXK_NUMPAD_PAGEDOWN:
+        if keycode==wx.WXK_PAGEUP or keycode==wx.WXK_NUMPAD_PAGEUP or\
+            keycode==wx.WXK_LEFT or keycode==wx.WXK_NUMPAD_LEFT or\
+            keycode==wx.WXK_UP or keycode==wx.WXK_NUMPAD_UP:
             if len(self.filelist):
                 old=self.index
                 if self.index: self.index-=1
@@ -215,7 +242,9 @@ class DFrame(wx.Frame):
                     self.Update()
                     self.showimage(self.filelist[self.index])
             return
-        if keycode==wx.WXK_PAGEUP or keycode==wx.WXK_NUMPAD_PAGEUP:
+        if keycode==wx.WXK_PAGEDOWN or keycode==wx.WXK_NUMPAD_PAGEDOWN or\
+            keycode==wx.WXK_RIGHT or keycode==wx.WXK_NUMPAD_RIGHT or\
+            keycode==wx.WXK_DOWN or keycode==wx.WXK_NUMPAD_DOWN:
             if len(self.filelist):
                 old=self.index
                 if self.index<len(self.filelist)-1: self.index+=1
@@ -226,14 +255,25 @@ class DFrame(wx.Frame):
                     self.Update()
                     self.showimage(self.filelist[self.index])
             return
+        if keycode==wx.WXK_F1:
+            wx.MessageBox('This is BPG image file viewer. Hot keys:\n'+\
+            'Esc - close\n'+\
+            'Ctrl-O - open BPG image file\n'+\
+            'Ctrl-S - save a copy of the opened file as a PNG file\n'+\
+            'PgUp,Left,Up - view previous file\n'+\
+            'PgDown,Right,Down - view next file\n','Help',\
+            wx.OK|wx.ICON_INFORMATION)
+            return
         event.Skip()
 
     def keychar(self,event):
         keycode=event.GetUniChar()
         try: co_code=wx.WXK_CONTROL_O
         except: co_code=15
+        try: cs_code=wx.WXK_CONTROL_S
+        except: cs_code=19
         if keycode==co_code:
-            openFileDialog = wx.FileDialog(self,'Open BPG file',"", "",\
+            openFileDialog = wx.FileDialog(self,'Open BPG file',"","",\
                 "BPG files (*.bpg)|*.bpg",wx.FD_OPEN|wx.FD_FILE_MUST_EXIST)
             status=openFileDialog.ShowModal()
             if status==wx.ID_CANCEL: return
@@ -243,6 +283,20 @@ class DFrame(wx.Frame):
                 self.Update()
                 self.showimage(openFileDialog.GetPath())
                 openFileDialog.Destroy()
+            return
+        if keycode==cs_code and len(self.pngfile):
+            saveFileDialog=wx.FileDialog(self,"Save BPG file as PNG file","",\
+                basename(self.filelist[self.index])[:-4],\
+                "PNG files (*.png)|*.png",wx.FD_SAVE|wx.FD_OVERWRITE_PROMPT)
+            status=saveFileDialog.ShowModal()
+            if status==wx.ID_CANCEL: return
+            if status==wx.ID_OK:
+                dst=saveFileDialog.GetPath()
+                try:
+                    if exists(dst): remove(dst)
+                    copyfile(self.pngfile,dst)
+                except: errmsgbox('Unable to save \"%s\"!'%dst)
+                return
         event.Skip()
 
     def __del__(self):
