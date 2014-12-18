@@ -16,7 +16,7 @@ _Usage:_ python bpgviewer.py input.bpg (Or just run 'python bpgviewer.py' and th
 
 ---  
 
-In MS Windows (Windows XP/Windos 7 32/64) environment you can use [statically linked](https://github.com/asimba/pybpgviewer/releases/download/v1.0/bpgviewer-1.0-win32-portable.7z) (by [cx_Freeze](http://cx-freeze.sourceforge.net/)) portable version.  
+In MS Windows (Windows XP/Windows 7 32/64) environment you can use [statically linked](https://github.com/asimba/pybpgviewer/releases/download/v1.0/bpgviewer-1.0-win32-portable.7z) (by [cx_Freeze](http://cx-freeze.sourceforge.net/)) portable version.  
 
 ---
 _Hot keys:_  
