@@ -15,9 +15,9 @@ _Usage:_ python bpgviewer.py input.bpg (Or just run 'python bpgviewer.py' and th
 _Hot keys:_
 Key  |Action
 -----|------
-F1|help message
-Esc|close
-Ctrl-O|open BPG image file
-Ctrl-S|save a copy of the opened file as a PNG file
-PgUp,Left,Up|view previous file
-PgDown,Right,Down|view next file
+F1 | help message
+Esc | close
+Ctrl-O | open BPG image file
+Ctrl-S | save a copy of the opened file as a PNG file
+PgUp,Left,Up | view previous file
+PgDown,Right,Down | view next file
