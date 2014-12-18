@@ -18,14 +18,9 @@ Or just run 'python bpgviewer.py' and then use 'Ctrl-O' to open BPG image file.
 
 Hot keys:
 
-F1 - help message
-
-Esc - close
-
-Ctrl-O - open BPG image file
-
-Ctrl-S - save a copy of the opened file as a PNG file
-
-PgUp,Left,Up - view previous file
-
-PgDown,Right,Down - view next file
+    F1 - help message
+    Esc - close
+    Ctrl-O - open BPG image file
+    Ctrl-S - save a copy of the opened file as a PNG file
+    PgUp,Left,Up - view previous file
+    PgDown,Right,Down - view next file
