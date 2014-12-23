@@ -27,5 +27,8 @@ F1 | help message
 Esc | close  
 Ctrl-O | open BPG image file  
 Ctrl-S | save a copy of the opened file as a PNG file  
-PgUp,Left,Up | view previous file  
-PgDown,Right,Down | view next file  
++ | zoom in (up to 100%)  
+- | zoom out (down to the smallest avaliable size)  
+Left,Up,Right,Down | move over the scaled image
+PgUp | view previous file  
+PgDown | view next file  
