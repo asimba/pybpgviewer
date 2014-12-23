@@ -34,8 +34,10 @@ from shutil import copyfile
 from math import floor
 from platform import system
 
-osflag=True
-if system()=="Windows": osflag=False
+if system()=="Windows":
+    osflag=False
+    from subprocess import STARTUPINFO
+else: osflag=True
 wxapp=False
 
 def errmsg(msg):
@@ -95,22 +97,28 @@ def bpgdecode(cmd,filename):
                 t,p=mkstemp(suffix='.png',prefix='')
                 close(t)
                 remove(p)
-        except: exit()
+        except: return ''
         if not(msg):
             cmd+=p+' '+realpath(filename)
             try:
-                f=Popen(cmd,shell=True,stdin=None,stdout=None,stderr=None)
+                if osflag:
+                    f=Popen(cmd,shell=True,stdin=None,stdout=None,stderr=None)
+                else:
+                    si=STARTUPINFO()
+                    si.dwFlags|=1
+                    si.wShowWindow=0
+                    f=Popen(self.cmd,shell=False,stdin=None,stdout=None,\
+                        stderr=None,bufsize=0,startupinfo=si)
                 f.wait()
             except: msg='BPG decoding error!\n'
             if not(msg):
                 if not(isfile(p)) or stat(p).st_size==0:
                     msg='Unable to open: \"%s\"!'%filename
-                    p=''
-        else: p=''
     else: msg='File \"%s\" in not a BPG-File!'%filename
     if msg:
         print msg
         errmsgbox(msg)
+        p=''
     return p
 
 class DFrame(wx.Frame):
@@ -120,33 +128,20 @@ class DFrame(wx.Frame):
             wx.IMAGE_QUALITY_HIGH))
 
     def showbitmap(self,bitmap):
-        if self.bitmap: self.bitmap.SetBitmap(bitmap)
-        else: self.bitmap=wx.StaticBitmap(self.panel,-1,bitmap)
-        self.grid_sizer.Clear()
+        self.bitmap.SetBitmap(bitmap)
         self.imginfo='%.2f'%self.scale+'%@'+self.bitmap_text
         self.bitmap.SetToolTipString(self.imginfo)
         x=bitmap.GetWidth()
         y=bitmap.GetHeight()
         self.panel.SetVirtualSize((x,y))
         self.panel.SetScrollbars(5,5,x,y)
-        self.grid_sizer.Add(self.bitmap,0,wx.ALIGN_CENTER_HORIZONTAL|\
-            wx.ALIGN_CENTER_VERTICAL|wx.EXPAND,0)
         crect=wx.Display().GetClientArea()
-        if not(self.IsMaximized()):
-            maximize=True
-            if (x>=crect[2] or y>=crect[3]):
-                wsize=self.GetClientSize()
-                self.panel.SetInitialSize(size=(wsize[0],wsize[1]))
-                self.SetInitialSize(size=(wsize[0],wsize[1]))
-                wx.CallAfter(self.Maximize)
-                maximize=False
-            else: self.panel.SetInitialSize(size=(x,y))
-            self.Fit()
-            self.Layout()
-            if maximize: wx.CallAfter(self.Center)
-        else:
-            self.Maximize()
-            self.Layout()
+        if not(x>crect[2]) and not(y>crect[3]) and not(self.IsMaximized()):
+            self.panel.SetInitialSize(size=(x,y))
+            self.SetInitialSize(size=(x,y))
+        else: wx.CallAfter(self.Center)
+        self.Fit()
+        self.Layout()
         wx.CallAfter(self.Update)
 
     def showimage(self,filename):
@@ -168,28 +163,24 @@ class DFrame(wx.Frame):
             except: self.bitmap_original=None
             if self.bitmap_original:
                 crect=wx.Display().GetClientArea()
-                self.SetSize((crect[2],crect[3]))
-                csize=self.GetClientSize()
-                self.sizer.Fit(self)
                 d=0.0
                 x=self.bitmap_original.GetWidth()
                 y=self.bitmap_original.GetHeight()
                 self.bitmap_text=str(x)+'x'+str(y)
-                if x>csize[0] and x>y:
-                    d=float(csize[0])/float(x)
-                if y>csize[1] and x<y:
-                    d=float(csize[1])/float(y)
-                if d:
+                d0=float(crect[2])/float(x)
+                d1=float(crect[3])/float(y)
+                if d0<1.0 or d1<1.0:
+                    d=d0 if d0<d1 else d1
+                    d*=0.95
                     x=floor(x*d)
                     y=floor(y*d)
                     self.scale=d
                     self.scale*=100.0
                     self.autoscale=self.scale
                     bitmap=self.scalebitmap(x,y)
+                else: bitmap=self.bitmap_original
                 self.showbitmap(bitmap)
-        else:
-            self.bitmap=None
-            self.imginfo=''
+        else: self.imginfo=''
         if len(self.imginfo): self.Title=filename+' ('+self.imginfo+')'
         else: self.Title='Press Ctrl+O to open BPG file...'
 
@@ -215,21 +206,23 @@ class DFrame(wx.Frame):
         self.bpgpath=bpggetcmd(scriptpath)
         self.scale=100.0
         self.autoscale=100.0
-        self.bitmap=None
+        crect=wx.Display().GetClientArea()
         self.bitmap_original=None
         self.bitmap_text=''
         self.imginfo=''
         self.pngfile=''
         self.filelist=[]
         self.index=0
+        self.SetInitialSize(size=(400,300))
         self.panel=wx.ScrolledWindow(self,-1,style=wx.WANTS_CHARS)
         self.sizer=wx.BoxSizer(wx.VERTICAL)
-        self.grid_sizer=wx.GridSizer(1,1,0,0)
-        self.panel.SetSizer(self.grid_sizer)
-        csizes=self.GetClientSize()
-        self.SetInitialSize(size=(400,300))
-        self.sizer.Add(self.panel,1,wx.EXPAND,0)
+        self.psizer=wx.BoxSizer(wx.VERTICAL)
+        self.sizer.Add(self.panel,1,wx.CENTER|wx.ALL|wx.EXPAND,0)
+        self.bitmap=wx.StaticBitmap(self.panel,\
+            bitmap=wx.EmptyBitmap(400,300))
+        self.psizer.Add(self.bitmap,1,wx.CENTER|wx.ALL|wx.ADJUST_MINSIZE,0)
         self.SetSizer(self.sizer)
+        self.panel.SetSizer(self.psizer)
         self.showimage(title)
         self.sizer.Fit(self)
         self.panel.Bind(wx.EVT_KEY_DOWN,self.keydown)
