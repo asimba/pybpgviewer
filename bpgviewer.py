@@ -30,14 +30,23 @@ from os import walk,access,R_OK,stat,close,remove
 from os.path import exists,isfile,dirname,basename,realpath,join
 from tempfile import mkstemp
 from subprocess import Popen,PIPE,STDOUT
-from shutil import copyfile
 from math import floor
 from platform import system
 
 if system()=="Windows":
     osflag=False
     from subprocess import STARTUPINFO
-else: osflag=True
+else:
+    osflag=True
+    from os import mkfifo,O_NONBLOCK,O_RDONLY
+    import signal
+    import StringIO
+
+    class TimeExceededError(Exception): pass
+
+    def timeout(signum,frame):
+        raise TimeExceededError,"Timed Out"
+
 wxapp=False
 
 def errmsg(msg):
@@ -64,6 +73,14 @@ Under Debian or Ubuntu you may try: sudo aptitude install python-wxgtk2.8"
     errmsg(msg)
     raise RuntimeError(msg)
 
+try: import Image
+except:
+    msg="Please install Python Imaging Library (PIL) 1.1.7 or higher \n\
+(http://www.pythonware.com/products/pil/)!\n\
+Under Debian or Ubuntu you may try: sudo aptitude install python-imaging"
+    errmsg(msg)
+    raise RuntimeError(msg)
+
 def errmsgbox(msg):
     if not(wxapp): app=wx.App(0)
     wx.MessageBox(msg,'Error!',wx.OK|wx.ICON_ERROR)
@@ -86,42 +103,70 @@ def bpggetcmd(scriptname):
     bpgpath+=' -o '
     return bpgpath
 
-def bpgdecode(cmd,filename):
-    msg=None
-    p=''
-    if len(filename)>4 and filename[-4:].lower()=='.bpg':
-        try:
-            if not(isfile(filename) and access(filename,R_OK)):
-                msg='Unable to open \"%s\"!'%filename
-            else:
-                t,p=mkstemp(suffix='.png',prefix='')
-                close(t)
-                remove(p)
-        except: return ''
-        if not(msg):
-            cmd+=p+' '+realpath(filename)
-            try:
-                if osflag:
-                    f=Popen(cmd,shell=True,stdin=None,stdout=None,stderr=None)
-                else:
-                    si=STARTUPINFO()
-                    si.dwFlags|=1
-                    si.wShowWindow=0
-                    f=Popen(cmd,shell=False,stdin=None,stdout=None,\
-                        stderr=None,bufsize=0,startupinfo=si)
-                f.wait()
-            except: msg='BPG decoding error!\n'
-            if not(msg):
-                if not(isfile(p)) or stat(p).st_size==0:
-                    msg='Unable to open: \"%s\"!'%filename
-    else: msg='File \"%s\" in not a BPG-File!'%filename
-    if msg:
-        print msg
-        errmsgbox(msg)
-        p=''
-    return p
-
 class DFrame(wx.Frame):
+    def bpgdecode(self,cmd,filename):
+        msg=None
+        p=''
+        self.img=None
+        if len(filename)>4 and filename[-4:].lower()=='.bpg':
+            try:
+                if not(isfile(filename) and access(filename,R_OK)):
+                    msg='Unable to open \"%s\"!'%filename
+                else:
+                    if osflag: sfx='.ppm'
+                    else: sfx='.png'
+                    t,p=mkstemp(suffix=sfx,prefix='')
+                    close(t)
+                    remove(p)
+            except: return ''
+            if not(msg):
+                cmd+=p+' '+realpath(filename)
+                try:
+                    if osflag:
+                        cmd+=' >/dev/null 2>&1'
+                        mkfifo(p,0777)
+                        f=Popen(cmd,shell=True,stdin=None,stdout=None,\
+                            stderr=None)
+                        signal.signal(signal.SIGALRM,timeout)
+                        signal.alarm(2)
+                        try: fifo=open(p,mode='rb')
+                        except TimeExceededError:
+                            try: fifo.close()
+                            except: pass
+                            fifo=None
+                        finally: signal.alarm(0)
+                        imbuffer=''
+                        if fifo:
+                            while True:
+                                if f.poll()!=None: break;
+                                data=fifo.read()
+                                if len(data): imbuffer+=data
+                            fifo.close()
+                        if len(imbuffer):
+                            self.img=Image.open(StringIO.StringIO(imbuffer))
+                            del imbuffer
+                        else: msg='BPG decoding error!\n'
+                    else:
+                        si=STARTUPINFO()
+                        si.dwFlags|=1
+                        si.wShowWindow=0
+                        f=Popen(cmd,shell=False,stdin=None,stdout=None,\
+                            stderr=None,bufsize=0,startupinfo=si)
+                    f.wait()
+                except: msg='BPG decoding error!\n'
+                if not(msg):
+                    if not(osflag) and (not(isfile(p)) or stat(p).st_size==0):
+                        msg='Unable to open: \"%s\"!'%filename
+        else: msg='File \"%s\" in not a BPG-File!'%filename
+        if msg:
+            print msg
+            errmsgbox(msg)
+            p=''
+            if self.img:
+                del self.img
+                self.img=None
+        return p
+
     def scalebitmap(self,width,height):
         return wx.BitmapFromImage(\
             wx.ImageFromBitmap(self.bitmap_original).Scale(width,height,\
@@ -145,13 +190,13 @@ class DFrame(wx.Frame):
         wx.CallAfter(self.Update)
 
     def showimage(self,filename):
-        if len(self.pngfile):
-            try: remove(self.pngfile)
+        if len(self.ppmfile):
+            try: remove(self.ppmfile)
             except: pass
-            self.pngfile=''
-        if len(filename): self.pngfile=bpgdecode(self.bpgpath,filename)
-        else: self.pngfile=''
-        if len(self.pngfile):
+            self.ppmfile=''
+        if len(filename): self.ppmfile=self.bpgdecode(self.bpgpath,filename)
+        else: self.ppmfile=''
+        if len(self.ppmfile):
             if len(self.filelist)==0:
                 self.filelist=self.getfilelist(dirname(realpath(filename)))
                 self.index=0
@@ -159,8 +204,25 @@ class DFrame(wx.Frame):
                     if self.filelist[self.index]==realpath(filename): break
                     else: self.index+=1
                     if self.index>=len(self.filelist): break
-            try: self.bitmap_original=wx.Bitmap(self.pngfile)
-            except: self.bitmap_original=None
+            try:
+                if osflag:
+                    if self.img:
+                        wxim=apply(wx.EmptyImage,self.img.size)
+                        wxim.SetData(self.img.convert("RGB").tostring())
+                        wxim.SetAlphaData(\
+                            self.img.convert("RGBA").tostring()[3::4])
+                        self.bitmap_original=wx.BitmapFromImage(wxim)
+                        del self.img
+                        self.img=None
+                        del wxim
+                else:
+                    try: self.bitmap_original=wx.Bitmap(self.ppmfile)
+                    except:
+                        del self.bitmap_original
+                        self.bitmap_original=None
+            except:
+                del self.bitmap_original
+                self.bitmap_original=None
             if self.bitmap_original:
                 crect=wx.Display().GetClientArea()
                 d=0.0
@@ -209,8 +271,9 @@ class DFrame(wx.Frame):
         crect=wx.Display().GetClientArea()
         self.bitmap_original=None
         self.bitmap_text=''
+        self.img=None
         self.imginfo=''
-        self.pngfile=''
+        self.ppmfile=''
         self.filelist=[]
         self.index=0
         self.SetInitialSize(size=(400,300))
@@ -312,7 +375,7 @@ class DFrame(wx.Frame):
                 self.showimage(openFileDialog.GetPath())
                 openFileDialog.Destroy()
             return
-        if keycode==cs_code and len(self.pngfile):
+        if keycode==cs_code and len(self.ppmfile) and self.bitmap_original:
             saveFileDialog=wx.FileDialog(self,"Save BPG file as PNG file","",\
                 basename(self.filelist[self.index])[:-4],\
                 "PNG files (*.png)|*.png",wx.FD_SAVE|wx.FD_OVERWRITE_PROMPT)
@@ -322,7 +385,7 @@ class DFrame(wx.Frame):
                 dst=saveFileDialog.GetPath()
                 try:
                     if exists(dst): remove(dst)
-                    copyfile(self.pngfile,dst)
+                    self.bitmap_original.SaveFile(dst,wx.BITMAP_TYPE_PNG)
                 except: errmsgbox('Unable to save \"%s\"!'%dst)
                 return
         if keycode==ord('+'):
@@ -360,14 +423,14 @@ class DFrame(wx.Frame):
         event.Skip()
 
     def __del__(self):
-        if len(self.pngfile):
-            try: remove(self.pngfile)
+        if len(self.ppmfile):
+            try: remove(self.ppmfile)
             except: pass
 
 class bpgframe(wx.App):
-    def __init__(self,parent,title,pngfile):
+    def __init__(self,parent,title,ppmfile):
         super(bpgframe,self).__init__(parent)
-        frame=DFrame(None,title,pngfile)
+        frame=DFrame(None,title,ppmfile)
         self.SetTopWindow(frame)
         frame.Show()
 
