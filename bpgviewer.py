@@ -107,7 +107,7 @@ def bpgdecode(cmd,filename):
                     si=STARTUPINFO()
                     si.dwFlags|=1
                     si.wShowWindow=0
-                    f=Popen(self.cmd,shell=False,stdin=None,stdout=None,\
+                    f=Popen(cmd,shell=False,stdin=None,stdout=None,\
                         stderr=None,bufsize=0,startupinfo=si)
                 f.wait()
             except: msg='BPG decoding error!\n'
@@ -139,8 +139,8 @@ class DFrame(wx.Frame):
         if not(x>crect[2]) and not(y>crect[3]) and not(self.IsMaximized()):
             self.panel.SetInitialSize(size=(x,y))
             self.SetInitialSize(size=(x,y))
-        else: wx.CallAfter(self.Center)
-        self.Fit()
+            self.Fit()
+            wx.CallAfter(self.Center)
         self.Layout()
         wx.CallAfter(self.Update)
 
@@ -217,10 +217,16 @@ class DFrame(wx.Frame):
         self.panel=wx.ScrolledWindow(self,-1,style=wx.WANTS_CHARS)
         self.sizer=wx.BoxSizer(wx.VERTICAL)
         self.psizer=wx.BoxSizer(wx.VERTICAL)
-        self.sizer.Add(self.panel,1,wx.CENTER|wx.ALL|wx.EXPAND,0)
-        self.bitmap=wx.StaticBitmap(self.panel,\
-            bitmap=wx.EmptyBitmap(400,300))
-        self.psizer.Add(self.bitmap,1,wx.CENTER|wx.ALL|wx.ADJUST_MINSIZE,0)
+        self.sizer.Add(self.panel,1,wx.ALIGN_CENTER_HORIZONTAL|\
+            wx.ALIGN_CENTER_VERTICAL|wx.ALL|wx.EXPAND,0)
+        buffer=wx.EmptyBitmap(400,300)
+        dc=wx.BufferedDC(None,buffer)
+        dc.SetBackground(wx.Brush(self.GetBackgroundColour()))
+        dc.Clear()
+        dc.Destroy()
+        self.bitmap=wx.StaticBitmap(self.panel,bitmap=buffer)
+        self.psizer.Add(self.bitmap,1,wx.ALIGN_CENTER_HORIZONTAL|\
+            wx.ALIGN_CENTER_VERTICAL|wx.ALL|wx.ADJUST_MINSIZE,0)
         self.SetSizer(self.sizer)
         self.panel.SetSizer(self.psizer)
         self.showimage(title)
