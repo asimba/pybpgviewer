@@ -9,7 +9,7 @@ _Requirments:_
 * [bpgdec](http://bellard.org/bpg/)  
 * [python 2.7.x](https://www.python.org/)  
 * [wxPython 3.0.x.x](http://www.wxpython.org/)  
-* [Python Imaging Library (PIL) 1.1.7](http://www.pythonware.com/products/pil/)(this dependency only for Linux)
+* [Python Imaging Library (PIL) 1.1.7](http://www.pythonware.com/products/pil/) (this dependency only for Linux)
 
 ---
 _Notes:_  
