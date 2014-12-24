@@ -9,14 +9,19 @@ _Requirments:_
 * [bpgdec](http://bellard.org/bpg/)  
 * [python 2.7.x](https://www.python.org/)  
 * [wxPython 3.0.x.x](http://www.wxpython.org/)  
+* [Python Imaging Library (PIL) 1.1.7](http://www.pythonware.com/products/pil/)(this dependency only for Linux)
 
 ---
-_Note:_ large images will be scaled to fit screen area.  
+_Notes:_  
+* large images will be scaled to fit screen area  
+* Linux version is much more faster than Windows version  
+
+---
 _Usage:_ python bpgviewer.py input.bpg (Or just run 'python bpgviewer.py' and then use 'Ctrl-O' to open BPG image file). 
 
 ---  
 
-In MS Windows (Windows XP/Windows 7 32/64) environment you can use [statically linked](https://github.com/asimba/pybpgviewer/releases/download/v1.1/bpgviewer-1.1-win32-portable.7z) (by [cx_Freeze](http://cx-freeze.sourceforge.net/)) portable version or try the [installer](https://github.com/asimba/pybpgviewer/releases/download/v1.1/bpgviewer-1.1-setup.zip).  
+In MS Windows (Windows XP/Windows 7 32/64) environment you can use [statically linked](https://github.com/asimba/pybpgviewer/releases/download/v1.2/bpgviewer-1.2-win32-portable.7z) (by [cx_Freeze](http://cx-freeze.sourceforge.net/)) portable version or try the [installer](https://github.com/asimba/pybpgviewer/releases/download/v1.2/bpgviewer-1.2-setup.zip).  
 
 ---
 _Hot keys:_  
