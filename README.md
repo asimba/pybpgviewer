@@ -1,6 +1,6 @@
 bpgviewer
 ===========  
-Simple BPG Image viewer
+Simple BPG Image viewer  
 This script allows to view BPG Images.  
 
 _Requirments:_  
