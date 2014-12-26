@@ -102,7 +102,7 @@ def bpggetcmd(scriptname):
     else:
         bpgpath='/usr/bin/'+binname
     if not(exists(bpgpath)):
-        bpgpath=join(dirname(realpath(scriptname)),'bpgdec')
+        bpgpath=join(dirname(realpath(scriptname)),binname)
     if not(isfile(bpgpath)):
         msg='BPG decoder not found!\n'
         print msg
