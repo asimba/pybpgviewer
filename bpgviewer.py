@@ -31,6 +31,7 @@ from os.path import exists,isfile,dirname,basename,realpath,join
 from tempfile import mkstemp
 from subprocess import Popen,PIPE,STDOUT
 from math import floor
+import StringIO
 from platform import system
 
 if system()=="Windows":
@@ -40,7 +41,6 @@ else:
     osflag=True
     from os import mkfifo,O_NONBLOCK,O_RDONLY
     import signal
-    import StringIO
 
     class TimeExceededError(Exception): pass
 
@@ -66,6 +66,14 @@ def errmsg(msg):
         MessageBox=ctypes.windll.user32.MessageBoxW
         MessageBox(0,unicode(msg),u'Error!',16)
 
+if not(osflag):
+    try: import win32file
+    except:
+        msg="Please install Python for Windows Extensions\n\
+(http://sourceforge.net/projects/pywin32/)!"
+        errmsg(msg)
+        raise RuntimeError(msg)
+    
 try: import wx
 except:
     msg="Please install wxPython 2.8 or higher (http://www.wxpython.org/)!\n\
@@ -113,9 +121,7 @@ class DFrame(wx.Frame):
                 if not(isfile(filename) and access(filename,R_OK)):
                     msg='Unable to open \"%s\"!'%filename
                 else:
-                    if osflag: sfx='.ppm'
-                    else: sfx='.png'
-                    t,p=mkstemp(suffix=sfx,prefix='')
+                    t,p=mkstemp(suffix='.ppm',prefix='')
                     close(t)
                     remove(p)
             except: return ''
@@ -150,9 +156,27 @@ class DFrame(wx.Frame):
                         si=STARTUPINFO()
                         si.dwFlags|=1
                         si.wShowWindow=0
+                        tfile=win32file.CreateFile(p,\
+                            win32file.GENERIC_READ,\
+                            win32file.FILE_SHARE_READ|\
+                            win32file.FILE_SHARE_WRITE,\
+                            None,win32file.CREATE_ALWAYS,\
+                            win32file.FILE_ATTRIBUTE_TEMPORARY,None)
                         f=Popen(cmd,shell=False,stdin=None,stdout=None,\
                             stderr=None,bufsize=0,startupinfo=si)
-                    f.wait()
+                        f.wait()
+                        imbuffer=''
+                        if tfile:
+                            while True:
+                                data=win32file.ReadFile(tfile,16777216)
+                                if data[0]!=0 or len(data[1])==0:
+                                    break;
+                                if len(data[1]): imbuffer+=data[1]
+                            win32file.CloseHandle(tfile)
+                        if len(imbuffer):
+                            self.img=Image.open(StringIO.StringIO(imbuffer))
+                            del imbuffer
+                        else: msg='BPG decoding error!\n'
                 except: msg='BPG decoding error!\n'
                 if not(msg):
                     if not(osflag) and (not(isfile(p)) or stat(p).st_size==0):
@@ -205,23 +229,22 @@ class DFrame(wx.Frame):
                     else: self.index+=1
                     if self.index>=len(self.filelist): break
             try:
-                if osflag:
-                    if self.img:
-                        wxim=apply(wx.EmptyImage,self.img.size)
-                        wxim.SetData(self.img.convert("RGB").tostring())
-                        wxim.SetAlphaData(\
-                            self.img.convert("RGBA").tostring()[3::4])
-                        self.bitmap_original=wx.BitmapFromImage(wxim)
-                        del self.img
-                        self.img=None
-                        del wxim
+                if self.img:
+                    wxim=apply(wx.EmptyImage,self.img.size)
+                    wxim.SetData(self.img.convert("RGB").tostring())
+                    wxim.SetAlphaData(\
+                        self.img.convert("RGBA").tostring()[3::4])
+                    self.bitmap_original=wx.BitmapFromImage(wxim)
+                    del self.img
+                    self.img=None
+                    del wxim
                 else:
-                    try: self.bitmap_original=wx.Bitmap(self.ppmfile)
-                    except:
-                        del self.bitmap_original
-                        self.bitmap_original=None
+                    try: del self.bitmap_original
+                    except: pass
+                    self.bitmap_original=None
             except:
-                del self.bitmap_original
+                try: del self.bitmap_original
+                except: pass
                 self.bitmap_original=None
             if self.bitmap_original:
                 crect=wx.Display().GetClientArea()
