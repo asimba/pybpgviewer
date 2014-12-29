@@ -15,7 +15,7 @@ _Requirments:_
 ---
 _Notes:_  
 * large images will be scaled to fit screen area  
-* for Windows version you need a 'bpgdec'with a small [patch](https://github.com/asimba/libbpg/commit/10c7eeed31f5171d69c8cc08fe97064d3b529b17) (this file is already included in the portable package and in the installer)  
+* for Windows version you need a 'bpgdec' with a small [patch](https://github.com/asimba/libbpg/commit/10c7eeed31f5171d69c8cc08fe97064d3b529b17) (this file is already included in the portable package and in the installer)  
 
 ---
 _Usage:_ python bpgviewer.py input.bpg (Or just run 'python bpgviewer.py' and then use 'Ctrl-O' to open BPG image file). 
