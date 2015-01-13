@@ -29,6 +29,7 @@ from sys import argv,exit
 from os import walk,access,R_OK,stat,close,remove
 from os.path import exists,isfile,dirname,basename,realpath,join
 from tempfile import mkstemp
+from shutil import copyfile
 from subprocess import Popen,PIPE,STDOUT
 from math import floor
 import StringIO
@@ -371,6 +372,7 @@ class DFrame(wx.Frame):
             'Esc - close\n'+\
             'Ctrl-O - open BPG image file\n'+\
             'Ctrl-S - save a copy of the opened file as a PNG file\n'+\
+            'Ctrl-C - save a copy of the opened file\n'+\
             '+ - zoom in (up to 100%)\n'+\
             '- - zoom out (down to the smallest avaliable size)\n'+\
             'Left,Up,Right,Down - move over the scaled image\n'+\
@@ -386,6 +388,8 @@ class DFrame(wx.Frame):
         except: co_code=15
         try: cs_code=wx.WXK_CONTROL_S
         except: cs_code=19
+        try: cc_code=wx.WXK_CONTROL_C
+        except: cc_code=3
         if keycode==co_code:
             openFileDialog = wx.FileDialog(self,'Open BPG file',"","",\
                 "BPG files (*.bpg)|*.bpg",wx.FD_OPEN|wx.FD_FILE_MUST_EXIST)
@@ -409,6 +413,20 @@ class DFrame(wx.Frame):
                 try:
                     if exists(dst): remove(dst)
                     self.bitmap_original.SaveFile(dst,wx.BITMAP_TYPE_PNG)
+                except: errmsgbox('Unable to save \"%s\"!'%dst)
+                return
+        if keycode==cc_code and len(self.ppmfile) and self.bitmap_original:
+            saveFileDialog=wx.FileDialog(self,"Save a copy...","",\
+                basename(self.filelist[self.index])[:-4],\
+                "BPG files (*.bpg)|*.bpg",wx.FD_SAVE|wx.FD_OVERWRITE_PROMPT)
+            status=saveFileDialog.ShowModal()
+            if status==wx.ID_CANCEL: return
+            if status==wx.ID_OK:
+                dst=saveFileDialog.GetPath()
+                try:
+                    if exists(dst) and\
+                        abspath(self.filelist[self.index])!=dst: remove(dst)
+                    copyfile(self.filelist[self.index],dst)
                 except: errmsgbox('Unable to save \"%s\"!'%dst)
                 return
         if keycode==ord('+'):
