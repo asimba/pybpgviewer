@@ -135,7 +135,7 @@ class DFrame(wx.Frame):
                         f=Popen(cmd,shell=True,stdin=None,stdout=None,\
                             stderr=None)
                         signal.signal(signal.SIGALRM,timeout)
-                        signal.alarm(2)
+                        signal.alarm(8)
                         try: fifo=open(p,mode='rb')
                         except TimeExceededError:
                             try: fifo.close()
