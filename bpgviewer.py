@@ -26,7 +26,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 '''
 
 from sys import argv,exit
-from os import walk,access,R_OK,stat,close,remove
+from os import listdir,access,R_OK,stat,close,remove
 from os.path import exists,isfile,dirname,basename,realpath,join
 from tempfile import mkstemp
 from shutil import copyfile
@@ -127,7 +127,7 @@ class DFrame(wx.Frame):
                     remove(p)
             except: return ''
             if not(msg):
-                cmd+=p+' '+realpath(filename)
+                cmd+=p+' "'+realpath(filename)+'"'
                 try:
                     if osflag:
                         cmd+=' >/dev/null 2>&1'
@@ -135,7 +135,7 @@ class DFrame(wx.Frame):
                         f=Popen(cmd,shell=True,stdin=None,stdout=None,\
                             stderr=None)
                         signal.signal(signal.SIGALRM,timeout)
-                        signal.alarm(8)
+                        signal.alarm(2)
                         try: fifo=open(p,mode='rb')
                         except TimeExceededError:
                             try: fifo.close()
@@ -272,14 +272,13 @@ class DFrame(wx.Frame):
 
     def getfilelist(self,dirname):
         filelist=[]
-        for root,dirs,files in walk(dirname,topdown=False):
-            if root==dirname:
-                for f in sorted(files):
-                    fname=realpath(join(root,f))
-                    try:
-                        if access(fname,R_OK) and fname[-4:].lower()=='.bpg':
-                            filelist.append(fname)
-                    except: pass
+        for f in sorted(listdir(dirname)):
+            fname=realpath(join(dirname,f))
+            try:
+                if access(fname,R_OK) and isfile(fname) and\
+                    fname[-4:].lower()=='.bpg':
+                    filelist.append(fname)
+            except: pass
         return filelist
 
     def __init__(self,parent,scriptpath,title):
