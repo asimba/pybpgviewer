@@ -208,11 +208,22 @@ class DFrame(wx.Frame):
         crect=wx.Display().GetClientArea()
         if not(x>crect[2]) and not(y>crect[3]) and not(self.IsMaximized()):
             self.panel.SetInitialSize(size=(x,y))
-            self.SetInitialSize(size=(x,y))
             self.Fit()
             wx.CallAfter(self.Center)
         self.Layout()
-        wx.CallAfter(self.Update)
+
+    def showempty(self):
+        if self.bitmap_original:
+            try: del self.bitmap_original
+            except: pass
+            self.bitmap_original=None
+            buffer=wx.EmptyBitmap(400,300)
+            dc=wx.BufferedDC(None,buffer)
+            dc.SetBackground(wx.Brush(self.GetBackgroundColour()))
+            dc.Clear()
+            dc.Destroy()
+            self.showbitmap(buffer)
+        self.imginfo=''
 
     def showimage(self,filename):
         if len(self.ppmfile):
@@ -260,13 +271,12 @@ class DFrame(wx.Frame):
                     d*=0.95
                     x=floor(x*d)
                     y=floor(y*d)
-                    self.scale=d
-                    self.scale*=100.0
+                    self.scale=d*100.0
                     self.autoscale=self.scale
                     bitmap=self.scalebitmap(x,y)
                 else: bitmap=self.bitmap_original
                 self.showbitmap(bitmap)
-        else: self.imginfo=''
+        else: self.showempty()
         if len(self.imginfo): self.Title=filename+' ('+self.imginfo+')'
         else: self.Title='Press Ctrl+O to open BPG file...'
 
@@ -323,32 +333,40 @@ class DFrame(wx.Frame):
         self.Center()
         self.panel.SetFocus()
 
+    def previous(self):
+        if len(self.filelist):
+            old=self.index
+            if self.index: self.index-=1
+            else: self.index=len(self.filelist)-1
+            if self.index!=old:
+                self.Title='Loading...'
+                if osflag: self.Update()
+                else: self.Refresh()
+                self.showimage(self.filelist[self.index])
+
+    def next(self):
+        if len(self.filelist):
+            old=self.index
+            if self.index<len(self.filelist)-1: self.index+=1
+            else: self.index=0
+            if self.index!=old:
+                self.Title='Loading...'
+                if osflag: self.Update()
+                else: self.Refresh()
+                self.showimage(self.filelist[self.index])
+
     def keydown(self,event):
         keycode=event.GetKeyCode()
         if keycode==wx.WXK_ESCAPE:
             self.Close()
             return
-        if keycode==wx.WXK_PAGEUP or keycode==wx.WXK_NUMPAD_PAGEUP:
-            if len(self.filelist):
-                old=self.index
-                if self.index: self.index-=1
-                else: self.index=len(self.filelist)-1
-                if self.index!=old:
-                    self.Title='Loading...'
-                    self.Layout()
-                    self.Update()
-                    self.showimage(self.filelist[self.index])
+        if keycode==wx.WXK_PAGEUP or keycode==wx.WXK_NUMPAD_PAGEUP or\
+            keycode==wx.WXK_BACK:
+            self.previous()
             return
-        if keycode==wx.WXK_PAGEDOWN or keycode==wx.WXK_NUMPAD_PAGEDOWN:
-            if len(self.filelist):
-                old=self.index
-                if self.index<len(self.filelist)-1: self.index+=1
-                else: self.index=0
-                if self.index!=old:
-                    self.Title='Loading...'
-                    self.Layout()
-                    self.Update()
-                    self.showimage(self.filelist[self.index])
+        if keycode==wx.WXK_PAGEDOWN or keycode==wx.WXK_NUMPAD_PAGEDOWN or\
+            keycode==wx.WXK_RETURN:
+            self.next()
             return
         if keycode==wx.WXK_LEFT or keycode==wx.WXK_NUMPAD_LEFT:
             self.panel.Scroll(self.panel.GetScrollPos(wx.HORIZONTAL)-1,\
@@ -374,10 +392,34 @@ class DFrame(wx.Frame):
             'Ctrl-C - save a copy of the opened file\n'+\
             '+ - zoom in (up to 100%)\n'+\
             '- - zoom out (down to the smallest avaliable size)\n'+\
+            '* - zoom out to fit window area\n'+\
             'Left,Up,Right,Down - move over the scaled image\n'+\
-            'PgUp - view previous file\n'+\
-            'PgDown - view next file\n','Help',\
+            'PgUp,Backspace - view previous file\n'+\
+            'PgDown,Return - view next file\n'+\
+            'Delete - delete current file\n','Help',\
             wx.OK|wx.ICON_INFORMATION)
+            return
+        if keycode==wx.WXK_DELETE or keycode==wx.WXK_NUMPAD_DELETE:
+            if len(self.filelist) and self.bitmap_original:
+                if wx.MessageBox('Delete file "'+self.filelist[self.index]+\
+                    '"?','File deletion!',wx.YES_NO|wx.ICON_WARNING|\
+                    wx.NO_DEFAULT)==wx.YES:
+                    index=self.index
+                    try: remove(self.filelist[index])
+                    except:
+                        msg='Unable to delete: \"%s\"!'%self.filelist[index]
+                        errmsgbox(msg)
+                        return
+                    self.filelist.pop(index)
+                    if len(self.filelist):
+                        if index>=len(self.filelist): self.index=0
+                        self.Title='Loading...'
+                        if osflag: self.Update()
+                        else: self.Refresh()
+                        self.showimage(self.filelist[self.index])
+                    else:
+                        self.showempty()
+                        self.Title='Press Ctrl+O to open BPG file...'
             return
         event.Skip()
 
@@ -389,6 +431,11 @@ class DFrame(wx.Frame):
         except: cs_code=19
         try: cc_code=wx.WXK_CONTROL_C
         except: cc_code=3
+        if osflag: rt_code=370
+        else: rt_code=13
+        if keycode==rt_code:
+            self.next()
+            return
         if keycode==co_code:
             openFileDialog = wx.FileDialog(self,'Open BPG file',"","",\
                 "BPG files (*.bpg)|*.bpg",wx.FD_OPEN|wx.FD_FILE_MUST_EXIST)
@@ -396,8 +443,8 @@ class DFrame(wx.Frame):
             if status==wx.ID_CANCEL: return
             if status==wx.ID_OK:
                 self.Title='Loading...'
-                self.Layout()
-                self.Update()
+                if osflag: self.Update()
+                else: self.Refresh()
                 self.showimage(openFileDialog.GetPath())
                 openFileDialog.Destroy()
             return
@@ -429,36 +476,62 @@ class DFrame(wx.Frame):
                 except: errmsgbox('Unable to save \"%s\"!'%dst)
                 return
         if keycode==ord('+'):
-            if self.scale<100.0:
+            if self.bitmap_original and self.scale<100.0:
                 self.scale+=5.0
                 if self.scale>100: self.scale=100.0
                 x=self.bitmap_original.GetWidth()*(self.scale/100.0)
                 y=self.bitmap_original.GetHeight()*(self.scale/100.0)
-                bitmap=self.scalebitmap(x,y)
                 self.Title='Zooming in...'
-                self.Layout()
-                self.Update()
+                if osflag: self.Update()
+                else: self.Refresh()
+                bitmap=self.scalebitmap(x,y)
                 self.showbitmap(bitmap)
                 if len(self.imginfo): self.Title=self.filelist[self.index]+\
                     ' ('+self.imginfo+')'
-                else: self.Title='Press Ctrl+O to open BPG file...'
-                wx.CallAfter(self.Update)
+                else:
+                    self.Title='Press Ctrl+O to open BPG file...'
+                    wx.CallAfter(self.Update)
             return
         if keycode==ord('-'):
-            if self.scale>self.autoscale:
+            if self.bitmap_original and self.scale>self.autoscale:
                 self.scale-=5.0
                 if self.scale<self.autoscale: self.scale=self.autoscale
                 x=self.bitmap_original.GetWidth()*(self.scale/100.0)
                 y=self.bitmap_original.GetHeight()*(self.scale/100.0)
-                bitmap=self.scalebitmap(x,y)
                 self.Title='Zooming out...'
-                self.Layout()
-                self.Update()
+                if osflag: self.Update()
+                else: self.Refresh()
+                bitmap=self.scalebitmap(x,y)
                 self.showbitmap(bitmap)
                 if len(self.imginfo): self.Title=self.filelist[self.index]+\
                     ' ('+self.imginfo+')'
-                else: self.Title='Press Ctrl+O to open BPG file...'
-                wx.CallAfter(self.Update)
+                else:
+                    self.Title='Press Ctrl+O to open BPG file...'
+                    wx.CallAfter(self.Update)
+            return
+        if keycode==ord('*'):
+            if self.bitmap_original:
+                csize=self.GetClientSize()
+                d=0.0
+                x=self.bitmap_original.GetWidth()
+                y=self.bitmap_original.GetHeight()
+                self.bitmap_text=str(x)+'x'+str(y)
+                d0=float(csize[0])/float(x)
+                d1=float(csize[1])/float(y)
+                if d0<1.0 or d1<1.0:
+                    d=d0 if d0<d1 else d1
+                    x=floor(x*d)
+                    y=floor(y*d)
+                    scale=d*100.0
+                    if self.scale!=scale:
+                        self.scale=scale
+                        bitmap=self.scalebitmap(x,y)
+                        self.showbitmap(bitmap)
+                if len(self.imginfo): self.Title=self.filelist[self.index]+\
+                    ' ('+self.imginfo+')'
+                else:
+                    self.Title='Press Ctrl+O to open BPG file...'
+                    wx.CallAfter(self.Update)
             return
         event.Skip()
 
