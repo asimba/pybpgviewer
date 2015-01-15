@@ -21,7 +21,7 @@ _Usage:_ python bpgviewer.py input.bpg (Or just run 'python bpgviewer.py' and th
 
 ---  
 
-In MS Windows (Windows XP/Windows 7 32/64) environment you can use [statically linked](https://github.com/asimba/pybpgviewer/releases/download/v1.5/bpgviewer-1.5-win32-portable.7z) (by [cx_Freeze](http://cx-freeze.sourceforge.net/)) portable version or try the [installer](https://github.com/asimba/pybpgviewer/releases/download/v1.5/bpgviewer-1.5-setup.zip).  
+In MS Windows (Windows XP/Windows 7 32/64) environment you can use [statically linked](https://github.com/asimba/pybpgviewer/releases/download/v1.6/bpgviewer-1.6-win32-portable.7z) (by [cx_Freeze](http://cx-freeze.sourceforge.net/)) portable version or try the [installer](https://github.com/asimba/pybpgviewer/releases/download/v1.6/bpgviewer-1.6-setup.zip).  
 
 ---
 _Hot keys:_  
@@ -35,6 +35,8 @@ Ctrl-S | save a copy of the opened file as a PNG file
 Ctrl-C | save a copy of the opened file  
 + | zoom in (up to 100%)  
 - | zoom out (down to the smallest avaliable size)  
-Left,Up,Right,Down | move over the scaled image
-PgUp | view previous file  
-PgDown | view next file  
+* | zoom out to fit window area
+Left,Up,Right,Down | move over the scaled image  
+PgUp,Backspace | view previous file  
+PgDown,Return | view next file  
+Delete | delete current file  
