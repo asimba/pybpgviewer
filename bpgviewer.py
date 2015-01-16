@@ -192,6 +192,11 @@ class DFrame(wx.Frame):
                 self.img=None
         return p
 
+    def stitle(self,title):
+        self.Title=title
+        if osflag: self.Update()
+        else: self.Refresh()
+
     def scalebitmap(self,width,height):
         return wx.BitmapFromImage(\
             wx.ImageFromBitmap(self.bitmap_original).Scale(width,height,\
@@ -277,8 +282,8 @@ class DFrame(wx.Frame):
                 else: bitmap=self.bitmap_original
                 self.showbitmap(bitmap)
         else: self.showempty()
-        if len(self.imginfo): self.Title=filename+' ('+self.imginfo+')'
-        else: self.Title='Press Ctrl+O to open BPG file...'
+        if len(self.imginfo): self.stitle(filename+' ('+self.imginfo+')')
+        else: self.stitle('Press Ctrl+O to open BPG file...')
 
     def getfilelist(self,dirname):
         filelist=[]
@@ -339,9 +344,7 @@ class DFrame(wx.Frame):
             if self.index: self.index-=1
             else: self.index=len(self.filelist)-1
             if self.index!=old:
-                self.Title='Loading...'
-                if osflag: self.Update()
-                else: self.Refresh()
+                self.stitle('Loading...')
                 self.showimage(self.filelist[self.index])
 
     def next(self):
@@ -350,10 +353,27 @@ class DFrame(wx.Frame):
             if self.index<len(self.filelist)-1: self.index+=1
             else: self.index=0
             if self.index!=old:
-                self.Title='Loading...'
-                if osflag: self.Update()
-                else: self.Refresh()
+                self.stitle('Loading...')
                 self.showimage(self.filelist[self.index])
+
+    def rotate(self,dir):
+        if self.bitmap_original:
+            self.stitle('Rotating...')
+            wxim=self.bitmap_original.ConvertToImage()
+            try: del self.bitmap_original
+            except: pass
+            self.bitmap_original=wx.BitmapFromImage(\
+                wxim.Rotate90(clockwise=dir))
+            del wxim
+            if self.bitmap_original:
+                if self.scale!=100.0:
+                    x=self.bitmap_original.GetWidth()*(self.scale/100.0)
+                    y=self.bitmap_original.GetHeight()*(self.scale/100.0)
+                    bitmap=self.scalebitmap(x,y)
+                else: bitmap=self.bitmap_original
+            self.showbitmap(bitmap)
+            if len(self.imginfo): self.stitle(self.filelist[self.index]+\
+                ' ('+self.imginfo+')')
 
     def keydown(self,event):
         keycode=event.GetKeyCode()
@@ -390,6 +410,8 @@ class DFrame(wx.Frame):
             'Ctrl-O - open BPG image file\n'+\
             'Ctrl-S - save a copy of the opened file as a PNG file\n'+\
             'Ctrl-C - save a copy of the opened file\n'+\
+            'Ctrl-R - rotate 90 degrees clockwise\n'+\
+            'Ctrl-L - rotate 90 degrees counterclockwise\n'+\
             '+ - zoom in (up to 100%)\n'+\
             '- - zoom out (down to the smallest avaliable size)\n'+\
             '* - zoom out to fit window area\n'+\
@@ -413,13 +435,11 @@ class DFrame(wx.Frame):
                     self.filelist.pop(index)
                     if len(self.filelist):
                         if index>=len(self.filelist): self.index=0
-                        self.Title='Loading...'
-                        if osflag: self.Update()
-                        else: self.Refresh()
+                        self.stitle('Loading...')
                         self.showimage(self.filelist[self.index])
                     else:
                         self.showempty()
-                        self.Title='Press Ctrl+O to open BPG file...'
+                        self.stitle('Press Ctrl+O to open BPG file...')
             return
         event.Skip()
 
@@ -431,6 +451,10 @@ class DFrame(wx.Frame):
         except: cs_code=19
         try: cc_code=wx.WXK_CONTROL_C
         except: cc_code=3
+        try: cr_code=wx.WXK_CONTROL_R
+        except: cr_code=18
+        try: cl_code=wx.WXK_CONTROL_L
+        except: cl_code=12
         if osflag: rt_code=370
         else: rt_code=13
         if keycode==rt_code:
@@ -442,9 +466,7 @@ class DFrame(wx.Frame):
             status=openFileDialog.ShowModal()
             if status==wx.ID_CANCEL: return
             if status==wx.ID_OK:
-                self.Title='Loading...'
-                if osflag: self.Update()
-                else: self.Refresh()
+                self.stitle('Loading...')
                 self.showimage(openFileDialog.GetPath())
                 openFileDialog.Destroy()
             return
@@ -477,37 +499,33 @@ class DFrame(wx.Frame):
                 return
         if keycode==ord('+'):
             if self.bitmap_original and self.scale<100.0:
+                self.stitle('Zooming in...')
                 self.scale+=5.0
                 if self.scale>100: self.scale=100.0
-                x=self.bitmap_original.GetWidth()*(self.scale/100.0)
-                y=self.bitmap_original.GetHeight()*(self.scale/100.0)
-                self.Title='Zooming in...'
-                if osflag: self.Update()
-                else: self.Refresh()
-                bitmap=self.scalebitmap(x,y)
+                if self.scale!=100.0:
+                    x=self.bitmap_original.GetWidth()*(self.scale/100.0)
+                    y=self.bitmap_original.GetHeight()*(self.scale/100.0)
+                    bitmap=self.scalebitmap(x,y)
+                else: bitmap=self.bitmap_original
                 self.showbitmap(bitmap)
-                if len(self.imginfo): self.Title=self.filelist[self.index]+\
-                    ' ('+self.imginfo+')'
-                else:
-                    self.Title='Press Ctrl+O to open BPG file...'
-                    wx.CallAfter(self.Update)
+                if len(self.imginfo): self.stitle(self.filelist[self.index]+\
+                    ' ('+self.imginfo+')')
+                else: self.stitle('Press Ctrl+O to open BPG file...')
             return
         if keycode==ord('-'):
             if self.bitmap_original and self.scale>self.autoscale:
+                self.stitle('Zooming out...')
                 self.scale-=5.0
                 if self.scale<self.autoscale: self.scale=self.autoscale
-                x=self.bitmap_original.GetWidth()*(self.scale/100.0)
-                y=self.bitmap_original.GetHeight()*(self.scale/100.0)
-                self.Title='Zooming out...'
-                if osflag: self.Update()
-                else: self.Refresh()
-                bitmap=self.scalebitmap(x,y)
+                if self.scale!=100.0:
+                    x=self.bitmap_original.GetWidth()*(self.scale/100.0)
+                    y=self.bitmap_original.GetHeight()*(self.scale/100.0)
+                    bitmap=self.scalebitmap(x,y)
+                else: bitmap=self.bitmap_original
                 self.showbitmap(bitmap)
-                if len(self.imginfo): self.Title=self.filelist[self.index]+\
-                    ' ('+self.imginfo+')'
-                else:
-                    self.Title='Press Ctrl+O to open BPG file...'
-                    wx.CallAfter(self.Update)
+                if len(self.imginfo): self.stitle(self.filelist[self.index]+\
+                    ' ('+self.imginfo+')')
+                else: self.stitle('Press Ctrl+O to open BPG file...')
             return
         if keycode==ord('*'):
             if self.bitmap_original:
@@ -527,11 +545,15 @@ class DFrame(wx.Frame):
                         self.scale=scale
                         bitmap=self.scalebitmap(x,y)
                         self.showbitmap(bitmap)
-                if len(self.imginfo): self.Title=self.filelist[self.index]+\
-                    ' ('+self.imginfo+')'
-                else:
-                    self.Title='Press Ctrl+O to open BPG file...'
-                    wx.CallAfter(self.Update)
+                if len(self.imginfo): self.stitle(self.filelist[self.index]+\
+                    ' ('+self.imginfo+')')
+                else: self.stitle('Press Ctrl+O to open BPG file...')
+            return
+        if keycode==cr_code:
+            self.rotate(True)
+            return
+        if keycode==cl_code:
+            self.rotate(False)
             return
         event.Skip()
 
