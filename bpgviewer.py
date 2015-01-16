@@ -211,8 +211,9 @@ class DFrame(wx.Frame):
         self.panel.SetVirtualSize((x,y))
         self.panel.SetScrollbars(5,5,x,y)
         crect=wx.Display().GetClientArea()
-        if not(x>crect[2]) and not(y>crect[3]) and not(self.IsMaximized()):
+        if not(x>=crect[2]) and not(y>=crect[3]) and not(self.IsMaximized()):
             self.panel.SetInitialSize(size=(x,y))
+            self.panel.SetClientSize((x,y))
             self.Fit()
             wx.CallAfter(self.Center)
         self.Layout()
