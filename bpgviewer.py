@@ -3,7 +3,7 @@
 '''
 Simple BPG Image viewer.
 
-Copyright (c) 2014, Alexey Simbarsky
+Copyright (c) 2014-2015, Alexey Simbarsky
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
