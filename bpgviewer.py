@@ -68,7 +68,7 @@ def errmsg(msg):
         MessageBox(0,unicode(msg),u'Error!',16)
 
 if not(osflag):
-    try: import win32file
+    try: import win32file,win32pipe
     except:
         msg="Please install Python for Windows Extensions\n\
 (http://sourceforge.net/projects/pywin32/)!"
@@ -127,10 +127,9 @@ class DFrame(wx.Frame):
                     remove(p)
             except: return ''
             if not(msg):
-                cmd+=p+' "'+realpath(filename)+'"'
                 try:
                     if osflag:
-                        cmd+=' >/dev/null 2>&1'
+                        cmd+=p+' "'+realpath(filename)+'"'+' >/dev/null 2>&1'
                         mkfifo(p,0777)
                         f=Popen(cmd,shell=True,stdin=None,stdout=None,\
                             stderr=None)
@@ -157,31 +156,34 @@ class DFrame(wx.Frame):
                         si=STARTUPINFO()
                         si.dwFlags|=1
                         si.wShowWindow=0
-                        tfile=win32file.CreateFile(p,\
-                            win32file.GENERIC_READ,\
-                            win32file.FILE_SHARE_READ|\
-                            win32file.FILE_SHARE_WRITE,\
-                            None,win32file.CREATE_ALWAYS,\
-                            win32file.FILE_ATTRIBUTE_TEMPORARY,None)
+                        pname='\\\\.\\pipe\\'+basename(p)
+                        tpipe=win32pipe.CreateNamedPipe(
+                            pname,
+                            win32pipe.PIPE_ACCESS_DUPLEX,
+                            win32pipe.PIPE_TYPE_BYTE|win32pipe.PIPE_WAIT,
+                            1,16777216,16777216,2000,None)
+                        cmd+=pname+' "'+realpath(filename)+'"'
                         f=Popen(cmd,shell=False,stdin=None,stdout=None,\
                             stderr=None,bufsize=0,startupinfo=si)
-                        f.wait()
+                        win32pipe.ConnectNamedPipe(tpipe,None)
                         imbuffer=''
-                        if tfile:
+                        if tpipe:
                             while True:
-                                data=win32file.ReadFile(tfile,16777216)
-                                if data[0]!=0 or len(data[1])==0:
-                                    break;
+                                data=None
+                                try: data=win32file.ReadFile(tpipe,16777216)
+                                except: pass
+                                if not(data): break
                                 if len(data[1]): imbuffer+=data[1]
-                            win32file.CloseHandle(tfile)
+                        win32pipe.DisconnectNamedPipe(tpipe)
+                        f.wait()
                         if len(imbuffer):
-                            self.img=Image.open(StringIO.StringIO(imbuffer))
+                            try:
+                                self.img=Image.open(\
+                                    StringIO.StringIO(imbuffer))
+                            except: msg='BPG decoding error!\n'
                             del imbuffer
                         else: msg='BPG decoding error!\n'
                 except: msg='BPG decoding error!\n'
-                if not(msg):
-                    if not(osflag) and (not(isfile(p)) or stat(p).st_size==0):
-                        msg='Unable to open: \"%s\"!'%filename
         else: msg='File \"%s\" in not a BPG-File!'%filename
         if msg:
             print msg
@@ -468,6 +470,7 @@ class DFrame(wx.Frame):
             if status==wx.ID_CANCEL: return
             if status==wx.ID_OK:
                 self.stitle('Loading...')
+                self.filelist=[]
                 self.showimage(openFileDialog.GetPath())
                 openFileDialog.Destroy()
             return
