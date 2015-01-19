@@ -127,7 +127,9 @@ class DFrame(wx.Frame):
                     remove(p)
             except: return ''
             if not(msg):
+                err=0
                 try:
+                    imbuffer=''
                     if osflag:
                         cmd+=p+' "'+realpath(filename)+'"'+' >/dev/null 2>&1'
                         mkfifo(p,0777)
@@ -141,17 +143,12 @@ class DFrame(wx.Frame):
                             except: pass
                             fifo=None
                         finally: signal.alarm(0)
-                        imbuffer=''
                         if fifo:
                             while True:
                                 if f.poll()!=None: break;
                                 data=fifo.read()
                                 if len(data): imbuffer+=data
                             fifo.close()
-                        if len(imbuffer):
-                            self.img=Image.open(StringIO.StringIO(imbuffer))
-                            del imbuffer
-                        else: msg='BPG decoding error!\n'
                     else:
                         si=STARTUPINFO()
                         si.dwFlags|=1
@@ -173,17 +170,17 @@ class DFrame(wx.Frame):
                                 try: data=win32file.ReadFile(tpipe,16777216)
                                 except: pass
                                 if not(data): break
+                                if data[0]!=0: break
                                 if len(data[1]): imbuffer+=data[1]
                         win32pipe.DisconnectNamedPipe(tpipe)
                         f.wait()
-                        if len(imbuffer):
-                            try:
-                                self.img=Image.open(\
-                                    StringIO.StringIO(imbuffer))
-                            except: msg='BPG decoding error!\n'
-                            del imbuffer
-                        else: msg='BPG decoding error!\n'
-                except: msg='BPG decoding error!\n'
+                    if len(imbuffer):
+                        try: self.img=Image.open(StringIO.StringIO(imbuffer))
+                        except: err=1
+                        del imbuffer
+                    else: err=1
+                except: err=1
+                if err: msg='BPG decoding error!\n'
         else: msg='File \"%s\" in not a BPG-File!'%filename
         if msg:
             print msg
@@ -235,7 +232,8 @@ class DFrame(wx.Frame):
 
     def showimage(self,filename):
         if len(self.ppmfile):
-            try: remove(self.ppmfile)
+            try:
+                if osflag: remove(self.ppmfile)
             except: pass
             self.ppmfile=''
         if len(filename): self.ppmfile=self.bpgdecode(self.bpgpath,filename)
@@ -267,16 +265,23 @@ class DFrame(wx.Frame):
                 except: pass
                 self.bitmap_original=None
             if self.bitmap_original:
-                crect=wx.Display().GetClientArea()
+                if self.IsMaximized():
+                    cr=self.GetClientSize()
+                    cx=cr[0]
+                    cy=cr[1]
+                else:
+                    cr=wx.Display().GetClientArea()
+                    cx=cr[2]
+                    cy=cr[3]
                 d=0.0
                 x=self.bitmap_original.GetWidth()
                 y=self.bitmap_original.GetHeight()
                 self.bitmap_text=str(x)+'x'+str(y)
-                d0=float(crect[2])/float(x)
-                d1=float(crect[3])/float(y)
+                d0=float(cx)/float(x)
+                d1=float(cy)/float(y)
                 if d0<1.0 or d1<1.0:
                     d=d0 if d0<d1 else d1
-                    d*=0.95
+                    if not(self.IsMaximized()): d*=0.95
                     x=floor(x*d)
                     y=floor(y*d)
                     self.scale=d*100.0
@@ -337,6 +342,8 @@ class DFrame(wx.Frame):
         self.sizer.Fit(self)
         self.panel.Bind(wx.EVT_KEY_DOWN,self.keydown)
         self.panel.Bind(wx.EVT_CHAR,self.keychar)
+        self.panel.Bind(wx.EVT_LEFT_DCLICK,self.maximize)
+        self.bitmap.Bind(wx.EVT_LEFT_DCLICK,self.maximize)
         self.Layout()
         self.Center()
         self.panel.SetFocus()
@@ -377,6 +384,12 @@ class DFrame(wx.Frame):
             self.showbitmap(bitmap)
             if len(self.imginfo): self.stitle(self.filelist[self.index]+\
                 ' ('+self.imginfo+')')
+
+    def maximize(self,event):
+        if not(self.IsMaximized()):
+            self.Maximize()
+            if osflag: self.Update()
+            else: self.Refresh()
 
     def keydown(self,event):
         keycode=event.GetKeyCode()
