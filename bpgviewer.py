@@ -115,29 +115,24 @@ def bpggetcmd(scriptname):
 class DFrame(wx.Frame):
     def bpgdecode(self,cmd,filename):
         msg=None
-        p=''
         self.img=None
         if len(filename)>4 and filename[-4:].lower()=='.bpg':
             try:
                 if not(isfile(filename) and access(filename,R_OK)):
                     msg='Unable to open \"%s\"!'%filename
-                else:
-                    t,p=mkstemp(suffix='.ppm',prefix='')
-                    close(t)
-                    remove(p)
-            except: return ''
+            except: return False
             if not(msg):
                 err=0
                 try:
                     imbuffer=''
                     if osflag:
-                        cmd+=p+' "'+realpath(filename)+'"'+' >/dev/null 2>&1'
-                        mkfifo(p,0777)
+                        cmd+=self.fifo+' "'+realpath(filename)+'"'+\
+                            ' >/dev/null 2>&1'
                         f=Popen(cmd,shell=True,stdin=None,stdout=None,\
                             stderr=None)
                         signal.signal(signal.SIGALRM,timeout)
                         signal.alarm(8)
-                        try: fifo=open(p,mode='rb')
+                        try: fifo=open(self.fifo,mode='rb')
                         except TimeExceededError:
                             try: fifo.close()
                             except: pass
@@ -153,7 +148,7 @@ class DFrame(wx.Frame):
                         si=STARTUPINFO()
                         si.dwFlags|=1
                         si.wShowWindow=0
-                        pname='\\\\.\\pipe\\'+basename(p)
+                        pname='\\\\.\\pipe\\'+basename(self.fifo)
                         tpipe=win32pipe.CreateNamedPipe(
                             pname,
                             win32pipe.PIPE_ACCESS_DUPLEX,
@@ -168,7 +163,7 @@ class DFrame(wx.Frame):
                             while True:
                                 data=None
                                 try: data=win32file.ReadFile(tpipe,16777216)
-                                except: pass
+                                except: data=None
                                 if not(data): break
                                 if data[0]!=0: break
                                 if len(data[1]): imbuffer+=data[1]
@@ -185,11 +180,11 @@ class DFrame(wx.Frame):
         if msg:
             print msg
             errmsgbox(msg)
-            p=''
             if self.img:
                 del self.img
                 self.img=None
-        return p
+        else: return True
+        return False
 
     def stitle(self,title):
         self.Title=title
@@ -231,14 +226,7 @@ class DFrame(wx.Frame):
         self.imginfo=''
 
     def showimage(self,filename):
-        if len(self.ppmfile):
-            try:
-                if osflag: remove(self.ppmfile)
-            except: pass
-            self.ppmfile=''
-        if len(filename): self.ppmfile=self.bpgdecode(self.bpgpath,filename)
-        else: self.ppmfile=''
-        if len(self.ppmfile):
+        if len(filename) and self.bpgdecode(self.bpgpath,filename):
             if len(self.filelist)==0:
                 self.filelist=self.getfilelist(dirname(realpath(filename)))
                 self.index=0
@@ -250,8 +238,6 @@ class DFrame(wx.Frame):
                 if self.img:
                     wxim=apply(wx.EmptyImage,self.img.size)
                     wxim.SetData(self.img.convert("RGB").tostring())
-                    wxim.SetAlphaData(\
-                        self.img.convert("RGBA").tostring()[3::4])
                     self.bitmap_original=wx.BitmapFromImage(wxim)
                     del self.img
                     self.img=None
@@ -286,9 +272,8 @@ class DFrame(wx.Frame):
                     y=floor(y*d)
                     self.scale=d*100.0
                     self.autoscale=self.scale
-                    bitmap=self.scalebitmap(x,y)
-                else: bitmap=self.bitmap_original
-                self.showbitmap(bitmap)
+                    self.showbitmap(self.scalebitmap(x,y))
+                else: self.showbitmap(self.bitmap_original)
         else: self.showempty()
         if len(self.imginfo): self.stitle(filename+' ('+self.imginfo+')')
         else: self.stitle('Press Ctrl+O to open BPG file...')
@@ -314,12 +299,15 @@ class DFrame(wx.Frame):
         self.bpgpath=bpggetcmd(scriptpath)
         self.scale=100.0
         self.autoscale=100.0
-        crect=wx.Display().GetClientArea()
         self.bitmap_original=None
         self.bitmap_text=''
         self.img=None
         self.imginfo=''
-        self.ppmfile=''
+        self.fifo=''
+        t,self.fifo=mkstemp(suffix='.ppm',prefix='')
+        close(t)
+        remove(self.fifo)
+        if osflag: mkfifo(self.fifo,0777)
         self.filelist=[]
         self.index=0
         self.SetInitialSize(size=(400,300))
@@ -518,13 +506,12 @@ class DFrame(wx.Frame):
             if self.bitmap_original and self.scale<100.0:
                 self.stitle('Zooming in...')
                 self.scale+=5.0
-                if self.scale>100: self.scale=100.0
+                if self.scale>100.0: self.scale=100.0
                 if self.scale!=100.0:
                     x=self.bitmap_original.GetWidth()*(self.scale/100.0)
                     y=self.bitmap_original.GetHeight()*(self.scale/100.0)
-                    bitmap=self.scalebitmap(x,y)
-                else: bitmap=self.bitmap_original
-                self.showbitmap(bitmap)
+                    self.showbitmap(self.scalebitmap(x,y))
+                else: self.showbitmap(self.bitmap_original)
                 if len(self.imginfo): self.stitle(self.filelist[self.index]+\
                     ' ('+self.imginfo+')')
                 else: self.stitle('Press Ctrl+O to open BPG file...')
@@ -537,9 +524,8 @@ class DFrame(wx.Frame):
                 if self.scale!=100.0:
                     x=self.bitmap_original.GetWidth()*(self.scale/100.0)
                     y=self.bitmap_original.GetHeight()*(self.scale/100.0)
-                    bitmap=self.scalebitmap(x,y)
-                else: bitmap=self.bitmap_original
-                self.showbitmap(bitmap)
+                    self.showbitmap(self.scalebitmap(x,y))
+                else: self.showbitmap(self.bitmap_original)
                 if len(self.imginfo): self.stitle(self.filelist[self.index]+\
                     ' ('+self.imginfo+')')
                 else: self.stitle('Press Ctrl+O to open BPG file...')
@@ -560,8 +546,7 @@ class DFrame(wx.Frame):
                     scale=d*100.0
                     if self.scale!=scale:
                         self.scale=scale
-                        bitmap=self.scalebitmap(x,y)
-                        self.showbitmap(bitmap)
+                        self.showbitmap(self.scalebitmap(x,y))
                 if len(self.imginfo): self.stitle(self.filelist[self.index]+\
                     ' ('+self.imginfo+')')
                 else: self.stitle('Press Ctrl+O to open BPG file...')
@@ -575,14 +560,14 @@ class DFrame(wx.Frame):
         event.Skip()
 
     def __del__(self):
-        if len(self.ppmfile):
-            try: remove(self.ppmfile)
+        if osflag and exists(self.fifo):
+            try: remove(self.fifo)
             except: pass
 
 class bpgframe(wx.App):
-    def __init__(self,parent,title,ppmfile):
+    def __init__(self,parent,title,filename):
         super(bpgframe,self).__init__(parent)
-        frame=DFrame(None,title,ppmfile)
+        frame=DFrame(None,title,filename)
         self.SetTopWindow(frame)
         frame.Show()
 
