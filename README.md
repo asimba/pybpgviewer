@@ -3,7 +3,7 @@ bpgviewer
 Simple BPG Image viewer  
 This script allows to view BPG Images.  
 
-_Requirments:_  
+_Dependencies of the source script:_  
 
 ---  
 * [bpgdec](http://bellard.org/bpg/)  
@@ -21,7 +21,7 @@ _Usage:_ python bpgviewer.py input.bpg (Or just run 'python bpgviewer.py' and th
 
 ---  
 
-In MS Windows (Windows XP/Windows 7 32/64) environment you can use [statically linked](https://github.com/asimba/pybpgviewer/releases/download/v1.8/bpgviewer-1.8-win32-portable.7z) (by [cx_Freeze](http://cx-freeze.sourceforge.net/)) portable version or try the [installer](https://github.com/asimba/pybpgviewer/releases/download/v1.8/bpgviewer-1.8-setup.zip).  
+In MS Windows (Windows XP/Windows 7 32/64) environment you can use [statically linked](https://github.com/asimba/pybpgviewer/releases/download/v1.9/bpgviewer-1.9-win32-portable.7z) (by [cx_Freeze](http://cx-freeze.sourceforge.net/)) portable version or try the [installer](https://github.com/asimba/pybpgviewer/releases/download/v1.9/bpgviewer-1.9-setup.zip).  
 
 ---
 _Hot keys:_  
