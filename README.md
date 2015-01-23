@@ -21,7 +21,7 @@ _Usage:_ python bpgviewer.py input.bpg (Or just run 'python bpgviewer.py' and th
 
 ---  
 
-In MS Windows (Windows XP/Windows 7 32/64) environment you can use [statically linked](https://github.com/asimba/pybpgviewer/releases/download/v1.9/bpgviewer-1.9-win32-portable.7z) (by [cx_Freeze](http://cx-freeze.sourceforge.net/)) portable version or try the [installer](https://github.com/asimba/pybpgviewer/releases/download/v1.9/bpgviewer-1.9-setup.zip).  
+In MS Windows (Windows XP/Windows 7 32/64) environment you can use [statically linked](https://github.com/asimba/pybpgviewer/releases/download/v1.10/bpgviewer-1.10-win32-portable.7z) (by [cx_Freeze](http://cx-freeze.sourceforge.net/)) portable version or try the [installer](https://github.com/asimba/pybpgviewer/releases/download/v1.10/bpgviewer-1.10-setup.zip).  
 
 ---
 _Hot keys:_  
@@ -36,7 +36,7 @@ Ctrl-C | save a copy of the opened file
 Ctrl-R | rotate 90 degrees clockwise  
 Ctrl-L | rotate 90 degrees counterclockwise  
 + | zoom in (up to 100%)  
-- | zoom out (down to the smallest avaliable size)  
+- | zoom out (down to the smallest available size)  
 * | zoom out to fit window area
 Left,Up,Right,Down | move over the scaled image  
 PgUp,Backspace | view previous file  
