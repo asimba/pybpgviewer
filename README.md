@@ -20,7 +20,9 @@ _Notes:_
 _Usage:_ python bpgviewer.py input.bpg (Or just run 'python bpgviewer.py' and then use 'Ctrl-O' to open BPG image file). 
 
 ---  
+In Ubuntu environment you can try [debian package](https://github.com/asimba/pybpgviewer/releases/download/v1.10/bpgviewer_1.10-ubuntu_i386.deb).  
 
+---  
 In MS Windows (Windows XP/Windows 7 32/64) environment you can use [statically linked](https://github.com/asimba/pybpgviewer/releases/download/v1.10/bpgviewer-1.10-win32-portable.7z) (by [cx_Freeze](http://cx-freeze.sourceforge.net/)) portable version or try the [installer](https://github.com/asimba/pybpgviewer/releases/download/v1.10/bpgviewer-1.10-setup.zip).  
 
 ---
