@@ -417,7 +417,7 @@ class DFrame(wx.Frame):
             'Ctrl-R - rotate 90 degrees clockwise\n'+\
             'Ctrl-L - rotate 90 degrees counterclockwise\n'+\
             '+ - zoom in (up to 100%)\n'+\
-            '- - zoom out (down to the smallest avaliable size)\n'+\
+            '- - zoom out (down to the smallest available size)\n'+\
             '* - zoom out to fit window area\n'+\
             'Left,Up,Right,Down - move over the scaled image\n'+\
             'PgUp,Backspace - view previous file\n'+\
