@@ -113,7 +113,9 @@ def bpggetcmd(scriptname):
 class DFrame(wx.Frame):
     def bpgdecode(self,cmd,filename):
         msg=None
-        self.img=None
+        if self.img:
+            del self.img
+            self.img=None
         if len(filename)>4 and filename[-4:].lower()=='.bpg':
             try:
                 if not(isfile(filename) and access(filename,R_OK)):
@@ -187,9 +189,11 @@ class DFrame(wx.Frame):
         else: self.Refresh()
 
     def scalebitmap(self,width,height):
-        return wx.BitmapFromImage(\
-            wx.ImageFromBitmap(self.bitmap_original).Scale(width,height,\
-            wx.IMAGE_QUALITY_NORMAL))
+        if self.img:
+            r=self.img.resize((int(width),int(height)),Image.NEAREST)
+            return wx.BitmapFromBuffer(r.size[0],\
+                        r.size[1],r.convert("RGB").tostring())
+        else: return None
 
     def showbitmap(self,bitmap):
         self.bitmap.SetBitmap(bitmap)
@@ -208,10 +212,10 @@ class DFrame(wx.Frame):
         self.Layout()
 
     def showempty(self):
-        if self.bitmap_original:
-            try: del self.bitmap_original
+        if self.img:
+            try: del self.img
             except: pass
-            self.bitmap_original=None
+            self.img=None
             buffer=wx.EmptyBitmap(400,300)
             dc=wx.BufferedDC(None,buffer)
             dc.SetBackground(wx.Brush(self.GetBackgroundColour()))
@@ -229,23 +233,7 @@ class DFrame(wx.Frame):
                     if self.filelist[self.index]==realpath(filename): break
                     else: self.index+=1
                     if self.index>=len(self.filelist): break
-            try:
-                if self.img:
-                    wxim=apply(wx.EmptyImage,self.img.size)
-                    wxim.SetData(self.img.convert("RGB").tostring())
-                    self.bitmap_original=wx.BitmapFromImage(wxim)
-                    del self.img
-                    self.img=None
-                    del wxim
-                else:
-                    try: del self.bitmap_original
-                    except: pass
-                    self.bitmap_original=None
-            except:
-                try: del self.bitmap_original
-                except: pass
-                self.bitmap_original=None
-            if self.bitmap_original:
+            if self.img:
                 if self.IsMaximized():
                     cr=self.GetClientSize()
                     cx=cr[0]
@@ -255,8 +243,8 @@ class DFrame(wx.Frame):
                     cx=cr[2]
                     cy=cr[3]
                 d=0.0
-                x=self.bitmap_original.GetWidth()
-                y=self.bitmap_original.GetHeight()
+                x=self.img.size[0]
+                y=self.img.size[1]
                 self.bitmap_text=str(x)+'x'+str(y)
                 d0=float(cx)/float(x)
                 d1=float(cy)/float(y)
@@ -268,7 +256,8 @@ class DFrame(wx.Frame):
                     self.scale=d*100.0
                     self.autoscale=self.scale
                     self.showbitmap(self.scalebitmap(x,y))
-                else: self.showbitmap(self.bitmap_original)
+                else: self.showbitmap(wx.BitmapFromBuffer(self.img.size[0],\
+                        self.img.size[1],self.img.convert("RGB").tostring()))
         else: self.showempty()
         if len(self.imginfo): self.stitle(filename+' ('+self.imginfo+')')
         else: self.stitle('Press Ctrl+O to open BPG file...')
@@ -294,7 +283,6 @@ class DFrame(wx.Frame):
         self.bpgpath=bpggetcmd(scriptpath)
         self.scale=100.0
         self.autoscale=100.0
-        self.bitmap_original=None
         self.bitmap_text=''
         self.img=None
         self.imginfo=''
@@ -356,21 +344,17 @@ class DFrame(wx.Frame):
                 self.showimage(self.filelist[self.index])
 
     def rotate(self,dir):
-        if self.bitmap_original:
+        if self.img:
             self.stitle('Rotating...')
-            wxim=self.bitmap_original.ConvertToImage()
-            try: del self.bitmap_original
-            except: pass
-            self.bitmap_original=wx.BitmapFromImage(\
-                wxim.Rotate90(clockwise=dir))
-            del wxim
-            if self.bitmap_original:
+            if dir: self.img=self.img.rotate(-90)
+            else: self.img=self.img.rotate(90)
+            if self.img:
                 if self.scale!=100.0:
-                    x=self.bitmap_original.GetWidth()*(self.scale/100.0)
-                    y=self.bitmap_original.GetHeight()*(self.scale/100.0)
-                    bitmap=self.scalebitmap(x,y)
-                else: bitmap=self.bitmap_original
-            self.showbitmap(bitmap)
+                    x=self.img.size[0]*(self.scale/100.0)
+                    y=self.img.size[1]*(self.scale/100.0)
+                    self.showbitmap(self.scalebitmap(x,y))
+                else: self.showbitmap(wx.BitmapFromBuffer(self.img.size[0],\
+                        self.img.size[1],self.img.convert("RGB").tostring()))
             if len(self.imginfo): self.stitle(self.filelist[self.index]+\
                 ' ('+self.imginfo+')')
 
@@ -427,7 +411,7 @@ class DFrame(wx.Frame):
             wx.OK|wx.ICON_INFORMATION)
             return
         if keycode==wx.WXK_DELETE or keycode==wx.WXK_NUMPAD_DELETE:
-            if len(self.filelist) and self.bitmap_original:
+            if len(self.filelist) and self.img:
                 if wx.MessageBox('Delete file "'+self.filelist[self.index]+\
                     '"?','File deletion!',wx.YES_NO|wx.ICON_WARNING|\
                     wx.NO_DEFAULT)==wx.YES:
@@ -476,20 +460,24 @@ class DFrame(wx.Frame):
                 self.showimage(openFileDialog.GetPath())
                 openFileDialog.Destroy()
             return
-        if keycode==cs_code and len(self.ppmfile) and self.bitmap_original:
+        if keycode==cs_code and self.img:
             saveFileDialog=wx.FileDialog(self,"Save BPG file as PNG file","",\
-                basename(self.filelist[self.index])[:-4],\
+                basename(self.filelist[self.index])[:-4]+'.png',\
                 "PNG files (*.png)|*.png",wx.FD_SAVE|wx.FD_OVERWRITE_PROMPT)
             status=saveFileDialog.ShowModal()
             if status==wx.ID_CANCEL: return
             if status==wx.ID_OK:
                 dst=saveFileDialog.GetPath()
+                if dst[-4:].lower()!='.png': dst+='.png'
+                ttitle=self.Title
+                self.stitle('Saving PNG file...')
                 try:
                     if exists(dst): remove(dst)
-                    self.bitmap_original.SaveFile(dst,wx.BITMAP_TYPE_PNG)
+                    self.img.save(dst,'PNG',optimize=True)
                 except: errmsgbox('Unable to save \"%s\"!'%dst)
+                self.stitle(ttitle)
                 return
-        if keycode==cc_code and len(self.ppmfile) and self.bitmap_original:
+        if keycode==cc_code and self.img:
             saveFileDialog=wx.FileDialog(self,"Save a copy...","",\
                 basename(self.filelist[self.index])[:-4],\
                 "BPG files (*.bpg)|*.bpg",wx.FD_SAVE|wx.FD_OVERWRITE_PROMPT)
@@ -504,39 +492,41 @@ class DFrame(wx.Frame):
                 except: errmsgbox('Unable to save \"%s\"!'%dst)
                 return
         if keycode==ord('+'):
-            if self.bitmap_original and self.scale<100.0:
+            if self.img and self.scale<100.0:
                 self.stitle('Zooming in...')
                 self.scale+=5.0
                 if self.scale>100.0: self.scale=100.0
                 if self.scale!=100.0:
-                    x=self.bitmap_original.GetWidth()*(self.scale/100.0)
-                    y=self.bitmap_original.GetHeight()*(self.scale/100.0)
+                    x=self.img.size[0]*(self.scale/100.0)
+                    y=self.img.size[1]*(self.scale/100.0)
                     self.showbitmap(self.scalebitmap(x,y))
-                else: self.showbitmap(self.bitmap_original)
+                else: self.showbitmap(wx.BitmapFromBuffer(self.img.size[0],\
+                        self.img.size[1],self.img.convert("RGB").tostring()))
                 if len(self.imginfo): self.stitle(self.filelist[self.index]+\
                     ' ('+self.imginfo+')')
                 else: self.stitle('Press Ctrl+O to open BPG file...')
             return
         if keycode==ord('-'):
-            if self.bitmap_original and self.scale>self.autoscale:
+            if self.img and self.scale>self.autoscale:
                 self.stitle('Zooming out...')
                 self.scale-=5.0
                 if self.scale<self.autoscale: self.scale=self.autoscale
                 if self.scale!=100.0:
-                    x=self.bitmap_original.GetWidth()*(self.scale/100.0)
-                    y=self.bitmap_original.GetHeight()*(self.scale/100.0)
+                    x=self.img.size[0]*(self.scale/100.0)
+                    y=self.img.size[1]*(self.scale/100.0)
                     self.showbitmap(self.scalebitmap(x,y))
-                else: self.showbitmap(self.bitmap_original)
+                else: self.showbitmap(wx.BitmapFromBuffer(self.img.size[0],\
+                        self.img.size[1],self.img.convert("RGB").tostring()))
                 if len(self.imginfo): self.stitle(self.filelist[self.index]+\
                     ' ('+self.imginfo+')')
                 else: self.stitle('Press Ctrl+O to open BPG file...')
             return
         if keycode==ord('*'):
-            if self.bitmap_original:
+            if self.img:
                 csize=self.GetClientSize()
                 d=0.0
-                x=self.bitmap_original.GetWidth()
-                y=self.bitmap_original.GetHeight()
+                x=self.img.size[0]
+                y=self.img.size[1]
                 self.bitmap_text=str(x)+'x'+str(y)
                 d0=float(csize[0])/float(x)
                 d1=float(csize[1])/float(y)
