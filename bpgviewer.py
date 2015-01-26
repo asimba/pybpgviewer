@@ -34,7 +34,6 @@ from subprocess import Popen,PIPE,STDOUT
 from math import floor
 import StringIO
 from platform import system
-from threading import Thread
 
 if system()=="Windows":
     osflag=False
