@@ -34,19 +34,18 @@ from subprocess import Popen,PIPE,STDOUT
 from math import floor
 import StringIO
 from platform import system
+from threading import Thread
 
 if system()=="Windows":
     osflag=False
     from subprocess import STARTUPINFO
 else:
     osflag=True
-    from os import mkfifo,O_NONBLOCK,O_RDONLY
-    import signal
-
-    class TimeExceededError(Exception): pass
-
-    def timeout(signum,frame):
-        raise TimeExceededError,"Timed Out"
+    from os import mkfifo,O_RDONLY,O_NONBLOCK
+    from os import open as osopen
+    from os import read as osread
+    from os import close as osclose
+    import errno
 
 wxapp=False
 
@@ -126,24 +125,21 @@ class DFrame(wx.Frame):
                 try:
                     imbuffer=''
                     if osflag:
+                        fifo=osopen(self.fifo,O_RDONLY|O_NONBLOCK)
                         cmd+=self.fifo+' "'+realpath(filename)+'"'+\
                             ' >/dev/null 2>&1'
                         f=Popen(cmd,shell=True,stdin=None,stdout=None,\
                             stderr=None)
-                        signal.signal(signal.SIGALRM,timeout)
-                        signal.alarm(8)
-                        try: fifo=open(self.fifo,mode='rb')
-                        except TimeExceededError:
-                            try: fifo.close()
-                            except: pass
-                            fifo=None
-                        finally: signal.alarm(0)
                         if fifo:
                             while True:
                                 if f.poll()!=None: break;
-                                data=fifo.read()
+                                try: data=osread(fifo,16777216)
+                                except OSError as e:
+                                    if e.errno==errno.EAGAIN or\
+                                        e.errno==errno.EWOULDBLOCK: data=''
+                                    else: raise
                                 if len(data): imbuffer+=data
-                            fifo.close()
+                            osclose(fifo)
                     else:
                         si=STARTUPINFO()
                         si.dwFlags|=1
@@ -194,7 +190,7 @@ class DFrame(wx.Frame):
     def scalebitmap(self,width,height):
         return wx.BitmapFromImage(\
             wx.ImageFromBitmap(self.bitmap_original).Scale(width,height,\
-            wx.IMAGE_QUALITY_HIGH))
+            wx.IMAGE_QUALITY_NORMAL))
 
     def showbitmap(self,bitmap):
         self.bitmap.SetBitmap(bitmap)
@@ -307,7 +303,13 @@ class DFrame(wx.Frame):
         t,self.fifo=mkstemp(suffix='.ppm',prefix='')
         close(t)
         remove(self.fifo)
-        if osflag: mkfifo(self.fifo,0777)
+        if osflag:
+            try: mkfifo(self.fifo,0700)
+            except:
+                msg='Unable to create FIFO file!'
+                print msg
+                errmsgbox(msg)
+                exit()
         self.filelist=[]
         self.index=0
         self.SetInitialSize(size=(400,300))
