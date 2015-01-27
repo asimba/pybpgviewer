@@ -88,6 +88,45 @@ Under Debian or Ubuntu you may try: sudo aptitude install python-imaging"
     errmsg(msg)
     raise RuntimeError(msg)
 
+from wx.lib.embeddedimage import PyEmbeddedImage
+
+bpglogo=PyEmbeddedImage(
+    "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"
+    "P7EZ5A4mdx+jAAAAAElFTkSuQmCC")
+
 def errmsgbox(msg):
     if not(wxapp): app=wx.App(0)
     wx.MessageBox(msg,'Error!',wx.OK|wx.ICON_ERROR)
@@ -211,17 +250,20 @@ class DFrame(wx.Frame):
             wx.CallAfter(self.Center)
         self.Layout()
 
+    def emptybitmap(self):
+        buffer=wx.EmptyBitmap(400,300)
+        dc=wx.BufferedDC(None,buffer)
+        dc.SetBackground(wx.Brush(self.GetBackgroundColour()))
+        dc.Clear()
+        dc.Destroy()
+        return buffer
+
     def showempty(self):
         if self.img:
             try: del self.img
             except: pass
             self.img=None
-            buffer=wx.EmptyBitmap(400,300)
-            dc=wx.BufferedDC(None,buffer)
-            dc.SetBackground(wx.Brush(self.GetBackgroundColour()))
-            dc.Clear()
-            dc.Destroy()
-            self.showbitmap(buffer)
+            self.showbitmap(self.emptybitmap())
         self.imginfo=''
 
     def showimage(self,filename):
@@ -305,12 +347,7 @@ class DFrame(wx.Frame):
         self.psizer=wx.BoxSizer(wx.VERTICAL)
         self.sizer.Add(self.panel,1,wx.ALIGN_CENTER_HORIZONTAL|\
             wx.ALIGN_CENTER_VERTICAL|wx.ALL|wx.EXPAND,0)
-        buffer=wx.EmptyBitmap(400,300)
-        dc=wx.BufferedDC(None,buffer)
-        dc.SetBackground(wx.Brush(self.GetBackgroundColour()))
-        dc.Clear()
-        dc.Destroy()
-        self.bitmap=wx.StaticBitmap(self.panel,bitmap=buffer)
+        self.bitmap=wx.StaticBitmap(self.panel,bitmap=self.emptybitmap())
         self.psizer.Add(self.bitmap,1,wx.ALIGN_CENTER_HORIZONTAL|\
             wx.ALIGN_CENTER_VERTICAL|wx.ALL|wx.ADJUST_MINSIZE,0)
         self.SetSizer(self.sizer)
@@ -321,6 +358,14 @@ class DFrame(wx.Frame):
         self.panel.Bind(wx.EVT_CHAR,self.keychar)
         self.panel.Bind(wx.EVT_LEFT_DCLICK,self.maximize)
         self.bitmap.Bind(wx.EVT_LEFT_DCLICK,self.maximize)
+        if osflag: self._icon=bpglogo.GetIcon()
+        else:
+            tmp_icon=bpglogo.GetImage()
+            tmp_icon.Rescale(32,32,wx.IMAGE_QUALITY_HIGH)
+            self._icon=wx.EmptyIcon()
+            self._icon.CopyFromBitmap(wx.BitmapFromImage(tmp_icon))
+        try: self.SetIcon(self._icon)
+        except: pass
         self.Layout()
         self.Center()
         self.panel.SetFocus()
