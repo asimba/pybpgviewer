@@ -513,15 +513,17 @@ class DFrame(wx.Frame):
             return
         if keycode==wx.WXK_DELETE or keycode==wx.WXK_NUMPAD_DELETE:
             if len(self.filelist) and self.img:
+                if type(self.filelist[self.index]) is unicode:
+                    tmp=self.filelist[self.index].encode(self.codepage)
+                else: tmp=self.filelist[self.index]
                 if wx.MessageBox(_('Delete file')+\
-                    ' "'+str(self.filelist[self.index])+\
-                    '"?',_('File deletion!'),\
+                    ' "'+tmp+'"?',_('File deletion!'),\
                     wx.YES_NO|wx.ICON_WARNING|wx.NO_DEFAULT)==wx.YES:
                     index=self.index
                     try: remove(self.filelist[index])
                     except:
                         msg=_('Unable to delete:')+\
-                            ' \"%s\"!'%str(self.filelist[index])
+                            ' \"%s\"!'%tmp
                         errmsgbox(msg)
                         return
                     self.filelist.pop(index)
