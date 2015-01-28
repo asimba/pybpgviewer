@@ -366,6 +366,8 @@ class DFrame(wx.Frame):
             try:
                 if access(fname,R_OK) and isfile(fname) and\
                     fname[-4:].lower()=='.bpg':
+                    if type(fname) is unicode:
+                        fname=fname.encode(self.codepage)
                     filelist.append(fname)
             except: pass
         return filelist
@@ -513,17 +515,14 @@ class DFrame(wx.Frame):
             return
         if keycode==wx.WXK_DELETE or keycode==wx.WXK_NUMPAD_DELETE:
             if len(self.filelist) and self.img:
-                if type(self.filelist[self.index]) is unicode:
-                    tmp=self.filelist[self.index].encode(self.codepage)
-                else: tmp=self.filelist[self.index]
-                if wx.MessageBox(_('Delete file')+\
-                    ' "'+tmp+'"?',_('File deletion!'),\
+                if wx.MessageBox(_('Delete file')+' "'+\
+                    self.filelist[self.index]+'"?',_('File deletion!'),\
                     wx.YES_NO|wx.ICON_WARNING|wx.NO_DEFAULT)==wx.YES:
                     index=self.index
                     try: remove(self.filelist[index])
                     except:
                         msg=_('Unable to delete:')+\
-                            ' \"%s\"!'%tmp
+                            ' \"%s\"!'%self.filelist[self.index]
                         errmsgbox(msg)
                         return
                     self.filelist.pop(index)
