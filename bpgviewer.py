@@ -34,6 +34,7 @@ from subprocess import Popen,PIPE,STDOUT
 from math import floor
 import StringIO
 from platform import system
+import locale,pickle,base64,zlib
 
 if system()=="Windows":
     osflag=False
@@ -47,6 +48,56 @@ else:
     import errno
 
 wxapp=False
+
+class translator():
+    def __init__(self):
+        self.voc={}
+        self.locale=locale.getdefaultlocale()
+
+    def find(self,key):
+        if self.voc.has_key(key):
+            if self.voc[key].has_key(self.locale[0]):
+                return self.voc[key][self.locale[0]].encode(self.locale[1])
+        return key
+
+t=translator()
+
+t.voc=pickle.loads(zlib.decompress(base64.decodestring("\
+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\
+")))
+
+def _(s):
+    return t.find(s)
 
 def errmsg(msg):
     if osflag:
@@ -62,29 +113,32 @@ def errmsg(msg):
             except: pass
     else:
         import ctypes
-        MessageBox=ctypes.windll.user32.MessageBoxW
-        MessageBox(0,unicode(msg),u'Error!',16)
+        MessageBox=ctypes.windll.user32.MessageBoxA
+        MessageBox(0,msg,_('Error!'),16)
 
 if not(osflag):
     try: import win32file,win32pipe
     except:
-        msg="Please install Python for Windows Extensions\n\
+        msg=_("Please install")+" Python for Windows Extensions\n\
 (http://sourceforge.net/projects/pywin32/)!"
         errmsg(msg)
         raise RuntimeError(msg)
     
 try: import wx
 except:
-    msg="Please install wxPython 2.8 or higher (http://www.wxpython.org/)!\n\
-Under Debian or Ubuntu you may try: sudo aptitude install python-wxgtk2.8"
+    msg=_("Please install")+" wxPython 2.8 "+_("or higher")+\
+        " (http://www.wxpython.org/)!\n"+\
+        _("Under Debian or Ubuntu you may try")+\
+        ": sudo aptitude install python-wxgtk2.8"
     errmsg(msg)
     raise RuntimeError(msg)
 
 try: import Image
 except:
-    msg="Please install Python Imaging Library (PIL) 1.1.7 or higher \n\
-(http://www.pythonware.com/products/pil/)!\n\
-Under Debian or Ubuntu you may try: sudo aptitude install python-imaging"
+    msg=_("Please install")+" Python Imaging Library (PIL) 1.1.7 "+\
+        _("or higher")+" \n(http://www.pythonware.com/products/pil/)!\n"+\
+        _("Under Debian or Ubuntu you may try")+\
+        ": sudo aptitude install python-imaging"
     errmsg(msg)
     raise RuntimeError(msg)
 
@@ -129,7 +183,7 @@ bpglogo=PyEmbeddedImage(
 
 def errmsgbox(msg):
     if not(wxapp): app=wx.App(0)
-    wx.MessageBox(msg,'Error!',wx.OK|wx.ICON_ERROR)
+    wx.MessageBox(msg,_('Error!'),wx.OK|wx.ICON_ERROR)
     if not(wxapp): app.Exit()
 
 def bpggetcmd(scriptname):
@@ -142,7 +196,7 @@ def bpggetcmd(scriptname):
     if not(exists(bpgpath)):
         bpgpath=join(dirname(realpath(scriptname)),binname)
     if not(isfile(bpgpath)):
-        msg='BPG decoder not found!\n'
+        msg=_('BPG decoder not found!\n')
         print msg
         errmsgbox(msg)
         exit()
@@ -158,7 +212,7 @@ class DFrame(wx.Frame):
         if len(filename)>4 and filename[-4:].lower()=='.bpg':
             try:
                 if not(isfile(filename) and access(filename,R_OK)):
-                    msg='Unable to open \"%s\"!'%filename
+                    msg=_('Unable to open')+'\"%s\"!'%filename
             except: return False
             if not(msg):
                 err=0
@@ -211,8 +265,8 @@ class DFrame(wx.Frame):
                         del imbuffer
                     else: err=1
                 except: err=1
-                if err: msg='BPG decoding error!\n'
-        else: msg='File \"%s\" in not a BPG-File!'%filename
+                if err: msg=_('BPG decoding error!\n')
+        else: msg=_('File')+' \"%s\" '%filename+_('is not a BPG-File!')
         if msg:
             print msg
             errmsgbox(msg)
@@ -267,6 +321,7 @@ class DFrame(wx.Frame):
         self.imginfo=''
 
     def showimage(self,filename):
+        if type(filename) is unicode: filename=filename.encode(self.codepage)
         if len(filename) and self.bpgdecode(self.bpgpath,filename):
             if len(self.filelist)==0:
                 self.filelist=self.getfilelist(dirname(realpath(filename)))
@@ -302,7 +357,7 @@ class DFrame(wx.Frame):
                         self.img.size[1],self.img.convert("RGB").tostring()))
         else: self.showempty()
         if len(self.imginfo): self.stitle(filename+' ('+self.imginfo+')')
-        else: self.stitle('Press Ctrl+O to open BPG file...')
+        else: self.stitle(_('Press Ctrl+O to open BPG file...'))
 
     def getfilelist(self,dirname):
         filelist=[]
@@ -322,6 +377,7 @@ class DFrame(wx.Frame):
         kwds["title"]=title
         kwds["parent"]=parent
         wx.Frame.__init__(self,*args,**kwds)
+        self.codepage=locale.getdefaultlocale()[1]
         self.bpgpath=bpggetcmd(scriptpath)
         self.scale=100.0
         self.autoscale=100.0
@@ -335,7 +391,7 @@ class DFrame(wx.Frame):
         if osflag:
             try: mkfifo(self.fifo,0700)
             except:
-                msg='Unable to create FIFO file!'
+                msg=_('Unable to create FIFO file!')
                 print msg
                 errmsgbox(msg)
                 exit()
@@ -376,7 +432,7 @@ class DFrame(wx.Frame):
             if self.index: self.index-=1
             else: self.index=len(self.filelist)-1
             if self.index!=old:
-                self.stitle('Loading...')
+                self.stitle(_('Loading...'))
                 self.showimage(self.filelist[self.index])
 
     def next(self):
@@ -385,12 +441,12 @@ class DFrame(wx.Frame):
             if self.index<len(self.filelist)-1: self.index+=1
             else: self.index=0
             if self.index!=old:
-                self.stitle('Loading...')
+                self.stitle(_('Loading...'))
                 self.showimage(self.filelist[self.index])
 
     def rotate(self,dir):
         if self.img:
-            self.stitle('Rotating...')
+            self.stitle(_('Rotating...'))
             if dir: self.img=self.img.rotate(-90)
             else: self.img=self.img.rotate(90)
             if self.img:
@@ -439,41 +495,43 @@ class DFrame(wx.Frame):
                 self.panel.GetScrollPos(wx.VERTICAL)+1)
             return
         if keycode==wx.WXK_F1:
-            wx.MessageBox('This is BPG image file viewer. Hot keys:\n'+\
-            'Esc - close\n'+\
-            'Ctrl-O - open BPG image file\n'+\
-            'Ctrl-S - save a copy of the opened file as a PNG file\n'+\
-            'Ctrl-C - save a copy of the opened file\n'+\
-            'Ctrl-R - rotate 90 degrees clockwise\n'+\
-            'Ctrl-L - rotate 90 degrees counterclockwise\n'+\
-            '+ - zoom in (up to 100%)\n'+\
-            '- - zoom out (down to the smallest available size)\n'+\
-            '* - zoom out to fit window area\n'+\
-            'Left,Up,Right,Down - move over the scaled image\n'+\
-            'PgUp,Backspace - view previous file\n'+\
-            'PgDown,Return - view next file\n'+\
-            'Delete - delete current file\n','Help',\
+            wx.MessageBox(_('This is BPG image file viewer. Hot keys:\n')+\
+            _('Esc - close\n')+\
+            _('Ctrl-O - open BPG image file\n')+\
+            _('Ctrl-S - save a copy of the opened file as a PNG file\n')+\
+            _('Ctrl-C - save a copy of the opened file\n')+\
+            _('Ctrl-R - rotate 90 degrees clockwise\n')+\
+            _('Ctrl-L - rotate 90 degrees counterclockwise\n')+\
+            _('+ - zoom in (up to 100%)\n')+\
+            _('- - zoom out (down to the smallest available size)\n')+\
+            _('* - zoom out to fit window area\n')+\
+            _('Left,Up,Right,Down - move over the scaled image\n')+\
+            _('PgUp,Backspace - view previous file\n')+\
+            _('PgDown,Return - view next file\n')+\
+            _('Delete - delete current file\n'),_('Help'),\
             wx.OK|wx.ICON_INFORMATION)
             return
         if keycode==wx.WXK_DELETE or keycode==wx.WXK_NUMPAD_DELETE:
             if len(self.filelist) and self.img:
-                if wx.MessageBox('Delete file "'+self.filelist[self.index]+\
-                    '"?','File deletion!',wx.YES_NO|wx.ICON_WARNING|\
-                    wx.NO_DEFAULT)==wx.YES:
+                if wx.MessageBox(_('Delete file')+\
+                    ' "'+str(self.filelist[self.index])+\
+                    '"?',_('File deletion!'),\
+                    wx.YES_NO|wx.ICON_WARNING|wx.NO_DEFAULT)==wx.YES:
                     index=self.index
                     try: remove(self.filelist[index])
                     except:
-                        msg='Unable to delete: \"%s\"!'%self.filelist[index]
+                        msg=_('Unable to delete:')+\
+                            ' \"%s\"!'%str(self.filelist[index])
                         errmsgbox(msg)
                         return
                     self.filelist.pop(index)
                     if len(self.filelist):
                         if index>=len(self.filelist): self.index=0
-                        self.stitle('Loading...')
+                        self.stitle(_('Loading...'))
                         self.showimage(self.filelist[self.index])
                     else:
                         self.showempty()
-                        self.stitle('Press Ctrl+O to open BPG file...')
+                        self.stitle(_('Press Ctrl+O to open BPG file...'))
             return
         event.Skip()
 
@@ -495,37 +553,40 @@ class DFrame(wx.Frame):
             self.next()
             return
         if keycode==co_code:
-            openFileDialog = wx.FileDialog(self,'Open BPG file',"","",\
-                "BPG files (*.bpg)|*.bpg",wx.FD_OPEN|wx.FD_FILE_MUST_EXIST)
+            openFileDialog = wx.FileDialog(self,_('Open BPG file'),"","",\
+                _("BPG files")+" (*.bpg)|*.bpg",\
+                wx.FD_OPEN|wx.FD_FILE_MUST_EXIST)
             status=openFileDialog.ShowModal()
             if status==wx.ID_CANCEL: return
             if status==wx.ID_OK:
-                self.stitle('Loading...')
+                self.stitle(_('Loading...'))
                 self.filelist=[]
                 self.showimage(openFileDialog.GetPath())
                 openFileDialog.Destroy()
             return
         if keycode==cs_code and self.img:
-            saveFileDialog=wx.FileDialog(self,"Save BPG file as PNG file","",\
-                basename(self.filelist[self.index])[:-4]+'.png',\
-                "PNG files (*.png)|*.png",wx.FD_SAVE|wx.FD_OVERWRITE_PROMPT)
+            saveFileDialog=wx.FileDialog(self,_("Save BPG file as PNG file"),\
+                "",basename(self.filelist[self.index])[:-4]+'.png',\
+                _("PNG files")+" (*.png)|*.png",\
+                wx.FD_SAVE|wx.FD_OVERWRITE_PROMPT)
             status=saveFileDialog.ShowModal()
             if status==wx.ID_CANCEL: return
             if status==wx.ID_OK:
                 dst=saveFileDialog.GetPath()
                 if dst[-4:].lower()!='.png': dst+='.png'
                 ttitle=self.Title
-                self.stitle('Saving PNG file...')
+                self.stitle(_('Saving PNG file...'))
                 try:
                     if exists(dst): remove(dst)
                     self.img.save(dst,'PNG',optimize=True)
-                except: errmsgbox('Unable to save \"%s\"!'%dst)
+                except: errmsgbox(_('Unable to save')+' \"%s\"!'%dst)
                 self.stitle(ttitle)
                 return
         if keycode==cc_code and self.img:
-            saveFileDialog=wx.FileDialog(self,"Save a copy...","",\
+            saveFileDialog=wx.FileDialog(self,_("Save a copy..."),"",\
                 basename(self.filelist[self.index])[:-4],\
-                "BPG files (*.bpg)|*.bpg",wx.FD_SAVE|wx.FD_OVERWRITE_PROMPT)
+                _("BPG files")+" (*.bpg)|*.bpg",\
+                wx.FD_SAVE|wx.FD_OVERWRITE_PROMPT)
             status=saveFileDialog.ShowModal()
             if status==wx.ID_CANCEL: return
             if status==wx.ID_OK:
@@ -534,11 +595,11 @@ class DFrame(wx.Frame):
                     if exists(dst) and\
                         abspath(self.filelist[self.index])!=dst: remove(dst)
                     copyfile(self.filelist[self.index],dst)
-                except: errmsgbox('Unable to save \"%s\"!'%dst)
+                except: errmsgbox(_('Unable to save')+' \"%s\"!'%dst)
                 return
         if keycode==ord('+'):
             if self.img and self.scale<100.0:
-                self.stitle('Zooming in...')
+                self.stitle(_('Zooming in...'))
                 self.scale+=5.0
                 if self.scale>100.0: self.scale=100.0
                 if self.scale!=100.0:
@@ -549,11 +610,11 @@ class DFrame(wx.Frame):
                         self.img.size[1],self.img.convert("RGB").tostring()))
                 if len(self.imginfo): self.stitle(self.filelist[self.index]+\
                     ' ('+self.imginfo+')')
-                else: self.stitle('Press Ctrl+O to open BPG file...')
+                else: self.stitle(_('Press Ctrl+O to open BPG file...'))
             return
         if keycode==ord('-'):
             if self.img and self.scale>self.autoscale:
-                self.stitle('Zooming out...')
+                self.stitle(_('Zooming out...'))
                 self.scale-=5.0
                 if self.scale<self.autoscale: self.scale=self.autoscale
                 if self.scale!=100.0:
@@ -564,7 +625,7 @@ class DFrame(wx.Frame):
                         self.img.size[1],self.img.convert("RGB").tostring()))
                 if len(self.imginfo): self.stitle(self.filelist[self.index]+\
                     ' ('+self.imginfo+')')
-                else: self.stitle('Press Ctrl+O to open BPG file...')
+                else: self.stitle(_('Press Ctrl+O to open BPG file...'))
             return
         if keycode==ord('*'):
             if self.img:
@@ -585,7 +646,7 @@ class DFrame(wx.Frame):
                         self.showbitmap(self.scalebitmap(x,y))
                 if len(self.imginfo): self.stitle(self.filelist[self.index]+\
                     ' ('+self.imginfo+')')
-                else: self.stitle('Press Ctrl+O to open BPG file...')
+                else: self.stitle(_('Press Ctrl+O to open BPG file...'))
             return
         if keycode==cr_code:
             self.rotate(True)
