@@ -574,6 +574,7 @@ class DFrame(wx.Frame):
             if status==wx.ID_CANCEL: return
             if status==wx.ID_OK:
                 dst=saveFileDialog.GetPath()
+                if type(dst) is unicode: dst=dst.encode(self.codepage)
                 if dst[-4:].lower()!='.png': dst+='.png'
                 ttitle=self.Title
                 self.stitle(_('Saving PNG file...'))
@@ -593,6 +594,7 @@ class DFrame(wx.Frame):
             if status==wx.ID_OK:
                 dst=saveFileDialog.GetPath()
                 try:
+                    if type(dst) is unicode: dst=dst.encode(self.codepage)
                     if exists(dst) and\
                         abspath(self.filelist[self.index])!=dst: remove(dst)
                     copyfile(self.filelist[self.index],dst)
