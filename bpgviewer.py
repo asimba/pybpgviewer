@@ -504,20 +504,13 @@ class DFrame(wx.Frame):
                 ' ('+self.imginfo+')')
 
     def fresize(self,event):
-            cr=self.bitmap.GetSize()
-            x=cr[0]
-            y=cr[1]
-            self.panel.SetVirtualSize((x,y))
-            self.panel.SetScrollbars(1,1,x,y)
-            self.panel.SetScrollRate(1,1)
-            crect=wx.Display().GetClientArea()
-            if not(x>=crect[2]) and not(y>=crect[3]) and\
-                not(self.IsMaximized()) and not(self.IsFullScreen()):
-                self.panel.SetInitialSize(size=(x,y))
-                self.panel.SetClientSize((x,y))
-                self.Fit()
-                wx.CallAfter(self.Center)
-            self.Layout()
+        cr=self.GetClientSize()
+        x=cr[0]
+        y=cr[1]
+        self.panel.SetInitialSize(size=(x,y))
+        self.panel.SetClientSize((x,y))
+        self.Fit()
+        self.Layout()
     
     def maxframe(self,event):
         if event!=None: event.Skip()
