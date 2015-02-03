@@ -31,7 +31,7 @@ from os.path import exists,isfile,dirname,basename,realpath,join
 from tempfile import mkstemp
 from shutil import copyfile
 from subprocess import Popen,PIPE,STDOUT
-from math import floor
+from math import floor,fabs
 import StringIO
 from platform import system
 import locale,pickle,base64,zlib
@@ -281,6 +281,9 @@ class DFrame(wx.Frame):
         if osflag: self.Update()
         else: self.Refresh()
 
+    def deftitle(self):
+        self.stitle(_('Press Ctrl+O to open BPG file...'))
+
     def scalebitmap(self,width,height):
         if self.img:
             r=self.img.resize((int(width),int(height)),Image.NEAREST)
@@ -289,25 +292,29 @@ class DFrame(wx.Frame):
         else: return None
 
     def showbitmap(self,bitmap):
-        self.bitmap.SetBitmap(bitmap)
-        self.imginfo='%.2f'%self.scale+'%@'+self.bitmap_text
-        self.bitmap.SetToolTipString(self.imginfo)
-        x=bitmap.GetWidth()
-        y=bitmap.GetHeight()
-        self.panel.SetVirtualSize((x,y))
-        self.panel.SetScrollbars(5,5,x,y)
-        crect=wx.Display().GetClientArea()
-        if not(x>=crect[2]) and not(y>=crect[3]) and not(self.IsMaximized()):
-            self.panel.SetInitialSize(size=(x,y))
-            self.panel.SetClientSize((x,y))
-            self.Fit()
-            wx.CallAfter(self.Center)
-        self.Layout()
+        if bitmap==None: self.showempty()
+        else:
+            self.bitmap.SetBitmap(bitmap)
+            self.imginfo='%.2f'%self.scale+'%@'+self.bitmap_text
+            self.bitmap.SetToolTipString(self.imginfo)
+            x=bitmap.GetWidth()
+            y=bitmap.GetHeight()
+            self.panel.SetVirtualSize((x,y))
+            self.panel.SetScrollbars(1,1,x,y)
+            self.panel.SetScrollRate(1,1)
+            crect=wx.Display().GetClientArea()
+            if not(x>=crect[2]) and not(y>=crect[3]) and\
+                not(self.IsMaximized()) and not(self.IsFullScreen()):
+                self.panel.SetInitialSize(size=(x,y))
+                self.panel.SetClientSize((x,y))
+                self.Fit()
+                wx.CallAfter(self.Center)
+            self.Layout()
 
     def emptybitmap(self):
         buffer=wx.EmptyBitmap(400,300)
         dc=wx.BufferedDC(None,buffer)
-        dc.SetBackground(wx.Brush(self.GetBackgroundColour()))
+        dc.SetBackground(wx.Brush(self.panel.GetBackgroundColour()))
         dc.Clear()
         dc.Destroy()
         return buffer
@@ -320,6 +327,40 @@ class DFrame(wx.Frame):
             self.showbitmap(self.emptybitmap())
         self.imginfo=''
 
+    def autoscaled(self):
+        if self.img:
+            if self.IsMaximized():
+                cr=self.GetClientSize()
+                cx=cr[0]
+                cy=cr[1]
+            else:
+                if self.IsFullScreen():
+                    cr=wx.DisplaySize()
+                    cx=cr[0]
+                    cy=cr[1]
+                else:
+                    cr=wx.Display().GetClientArea()
+                    cx=cr[2]
+                    cy=cr[3]
+            d=0.0
+            x=self.img.size[0]
+            y=self.img.size[1]
+            self.bitmap_text=str(x)+'x'+str(y)
+            d0=float(cx)/float(x)
+            d1=float(cy)/float(y)
+            if d0<1.0 or d1<1.0:
+                d=d0 if d0<d1 else d1
+                if not(self.IsMaximized()) and not(self.IsFullScreen()):
+                    d*=0.95
+                x=floor(x*d)
+                y=floor(y*d)
+                self.scale=d*100.0
+                self.autoscale=self.scale
+                return self.scalebitmap(x,y)
+            else: return wx.BitmapFromBuffer(self.img.size[0],\
+                    self.img.size[1],self.img.convert("RGB").tostring())
+        return None
+
     def showimage(self,filename):
         if type(filename) is unicode: filename=filename.encode(self.codepage)
         if len(filename) and self.bpgdecode(self.bpgpath,filename):
@@ -330,34 +371,10 @@ class DFrame(wx.Frame):
                     if self.filelist[self.index]==realpath(filename): break
                     else: self.index+=1
                     if self.index>=len(self.filelist): break
-            if self.img:
-                if self.IsMaximized():
-                    cr=self.GetClientSize()
-                    cx=cr[0]
-                    cy=cr[1]
-                else:
-                    cr=wx.Display().GetClientArea()
-                    cx=cr[2]
-                    cy=cr[3]
-                d=0.0
-                x=self.img.size[0]
-                y=self.img.size[1]
-                self.bitmap_text=str(x)+'x'+str(y)
-                d0=float(cx)/float(x)
-                d1=float(cy)/float(y)
-                if d0<1.0 or d1<1.0:
-                    d=d0 if d0<d1 else d1
-                    if not(self.IsMaximized()): d*=0.95
-                    x=floor(x*d)
-                    y=floor(y*d)
-                    self.scale=d*100.0
-                    self.autoscale=self.scale
-                    self.showbitmap(self.scalebitmap(x,y))
-                else: self.showbitmap(wx.BitmapFromBuffer(self.img.size[0],\
-                        self.img.size[1],self.img.convert("RGB").tostring()))
+            self.showbitmap(self.autoscaled())
         else: self.showempty()
         if len(self.imginfo): self.stitle(filename+' ('+self.imginfo+')')
-        else: self.stitle(_('Press Ctrl+O to open BPG file...'))
+        else: self.deftitle()
 
     def getfilelist(self,dirname):
         filelist=[]
@@ -414,8 +431,12 @@ class DFrame(wx.Frame):
         self.sizer.Fit(self)
         self.panel.Bind(wx.EVT_KEY_DOWN,self.keydown)
         self.panel.Bind(wx.EVT_CHAR,self.keychar)
-        self.panel.Bind(wx.EVT_LEFT_DCLICK,self.maximize)
-        self.bitmap.Bind(wx.EVT_LEFT_DCLICK,self.maximize)
+        self.panel.Bind(wx.EVT_MOTION,self.drag)
+        self.panel.Bind(wx.EVT_MOUSE_EVENTS,self.drag)
+        self.bitmap.Bind(wx.EVT_MOTION,self.drag)
+        self.bitmap.Bind(wx.EVT_MOUSE_EVENTS,self.drag)
+        self.Bind(wx.EVT_MAXIMIZE,self.maxframe)
+        self.Bind(wx.EVT_SIZE,self.fresize)
         if osflag: self._icon=bpglogo.GetIcon()
         else:
             tmp_icon=bpglogo.GetImage()
@@ -428,23 +449,44 @@ class DFrame(wx.Frame):
         self.Center()
         self.panel.SetFocus()
 
+    def loadindex(self,old):
+        if self.index!=old:
+            self.stitle(_('Loading...'))
+            self.showimage(self.filelist[self.index])
+
     def previous(self):
         if len(self.filelist):
             old=self.index
             if self.index: self.index-=1
             else: self.index=len(self.filelist)-1
-            if self.index!=old:
-                self.stitle(_('Loading...'))
-                self.showimage(self.filelist[self.index])
+            self.loadindex(old)
 
     def next(self):
         if len(self.filelist):
             old=self.index
             if self.index<len(self.filelist)-1: self.index+=1
             else: self.index=0
-            if self.index!=old:
-                self.stitle(_('Loading...'))
-                self.showimage(self.filelist[self.index])
+            self.loadindex(old)
+
+    def drag(self,event):
+        if self.img:
+            if event.Dragging():
+                pos=event.GetPosition()
+                if self.mpos!=None:
+                    dx=self.mpos[0]-pos[0]
+                    dy=self.mpos[1]-pos[1]
+                    self.panel.Scroll(self.panel.GetScrollPos(wx.HORIZONTAL)+\
+                        dx,self.panel.GetScrollPos(wx.VERTICAL)+dy)
+                return
+            if event.LeftDown():
+                self.mpos=event.GetPosition()
+                event.Skip()
+            if event.LeftUp():
+                self.mpos=None
+                event.Skip()
+        if event.ButtonDClick():
+            self.maximize()
+            return
 
     def rotate(self,dir):
         if self.img:
@@ -461,38 +503,59 @@ class DFrame(wx.Frame):
             if len(self.imginfo): self.stitle(self.filelist[self.index]+\
                 ' ('+self.imginfo+')')
 
-    def maximize(self,event):
-        if not(self.IsMaximized()):
-            self.Maximize()
-            if osflag: self.Update()
-            else: self.Refresh()
+    def fresize(self,event):
+            cr=self.bitmap.GetSize()
+            x=cr[0]
+            y=cr[1]
+            self.panel.SetVirtualSize((x,y))
+            self.panel.SetScrollbars(1,1,x,y)
+            self.panel.SetScrollRate(1,1)
+            crect=wx.Display().GetClientArea()
+            if not(x>=crect[2]) and not(y>=crect[3]) and\
+                not(self.IsMaximized()) and not(self.IsFullScreen()):
+                self.panel.SetInitialSize(size=(x,y))
+                self.panel.SetClientSize((x,y))
+                self.Fit()
+                wx.CallAfter(self.Center)
+            self.Layout()
+    
+    def maxframe(self,event):
+        if event!=None: event.Skip()
+        if self.scale==self.autoscale:
+            wx.CallAfter(self.showbitmap,self.autoscaled())
+            if len(self.imginfo): self.stitle(self.filelist[self.index]+\
+                ' ('+self.imginfo+')')
+            else: self.deftitle()
+
+    def maximize(self):
+        if not(self.IsFullScreen()):
+            if self.IsMaximized(): self.Maximize(False)
+            else: self.Maximize()
 
     def keydown(self,event):
         keycode=event.GetKeyCode()
         if keycode==wx.WXK_ESCAPE:
             self.Close()
             return
-        if keycode==wx.WXK_PAGEUP or keycode==wx.WXK_NUMPAD_PAGEUP or\
-            keycode==wx.WXK_BACK:
+        if keycode in [wx.WXK_PAGEUP,wx.WXK_NUMPAD_PAGEUP,wx.WXK_BACK]:
             self.previous()
             return
-        if keycode==wx.WXK_PAGEDOWN or keycode==wx.WXK_NUMPAD_PAGEDOWN or\
-            keycode==wx.WXK_RETURN:
+        if keycode in [wx.WXK_PAGEDOWN,wx.WXK_NUMPAD_PAGEDOWN,wx.WXK_RETURN]:
             self.next()
             return
-        if keycode==wx.WXK_LEFT or keycode==wx.WXK_NUMPAD_LEFT:
+        if keycode in [wx.WXK_LEFT,wx.WXK_NUMPAD_LEFT]:
             self.panel.Scroll(self.panel.GetScrollPos(wx.HORIZONTAL)-1,\
                 self.panel.GetScrollPos(wx.VERTICAL))
             return
-        if keycode==wx.WXK_RIGHT or keycode==wx.WXK_NUMPAD_RIGHT:
+        if keycode in [wx.WXK_RIGHT,wx.WXK_NUMPAD_RIGHT]:
             self.panel.Scroll(self.panel.GetScrollPos(wx.HORIZONTAL)+1,\
                 self.panel.GetScrollPos(wx.VERTICAL))
             return
-        if keycode==wx.WXK_UP or keycode==wx.WXK_NUMPAD_UP:
+        if keycode in [wx.WXK_UP,wx.WXK_NUMPAD_UP]:
             self.panel.Scroll(self.panel.GetScrollPos(wx.HORIZONTAL),\
                 self.panel.GetScrollPos(wx.VERTICAL)-1)
             return
-        if keycode==wx.WXK_DOWN or keycode==wx.WXK_NUMPAD_DOWN:
+        if keycode in [wx.WXK_DOWN,wx.WXK_NUMPAD_DOWN]:
             self.panel.Scroll(self.panel.GetScrollPos(wx.HORIZONTAL),\
                 self.panel.GetScrollPos(wx.VERTICAL)+1)
             return
@@ -508,12 +571,12 @@ class DFrame(wx.Frame):
             _('- - zoom out (down to the smallest available size)\n')+\
             _('* - zoom out to fit window area\n')+\
             _('Left,Up,Right,Down - move over the scaled image\n')+\
-            _('PgUp,Backspace - view previous file\n')+\
-            _('PgDown,Return - view next file\n')+\
+            _('PgUp,Backspace,A,S - view previous file\n')+\
+            _('PgDown,Return,D,W - view next file\n')+\
             _('Delete - delete current file\n'),_('Help'),\
             wx.OK|wx.ICON_INFORMATION)
             return
-        if keycode==wx.WXK_DELETE or keycode==wx.WXK_NUMPAD_DELETE:
+        if keycode in [wx.WXK_DELETE,wx.WXK_NUMPAD_DELETE]:
             if len(self.filelist) and self.img:
                 if wx.MessageBox(_('Delete file')+' "'+\
                     self.filelist[self.index]+'"?',_('File deletion!'),\
@@ -528,11 +591,10 @@ class DFrame(wx.Frame):
                     self.filelist.pop(index)
                     if len(self.filelist):
                         if index>=len(self.filelist): self.index=0
-                        self.stitle(_('Loading...'))
-                        self.showimage(self.filelist[self.index])
+                        self.loadindex(None)
                     else:
                         self.showempty()
-                        self.stitle(_('Press Ctrl+O to open BPG file...'))
+                        self.deftitle()
             return
         event.Skip()
 
@@ -550,8 +612,19 @@ class DFrame(wx.Frame):
         except: cl_code=12
         if osflag: rt_code=370
         else: rt_code=13
-        if keycode==rt_code:
+        try: cf_code=wx.WXK_CONTROL_F
+        except: cf_code=6
+        if keycode==cf_code:
+            if self.IsFullScreen():
+                self.ShowFullScreen(False,style=wx.DEFAULT_FRAME_STYLE)
+            else: self.ShowFullScreen(True,style=wx.FULLSCREEN_ALL)
+            self.maxframe(None)
+            return
+        if keycode in [rt_code,ord('D'),ord('W'),ord('d'),ord('w')]:
             self.next()
+            return
+        if keycode in [ord('A'),ord('S'),ord('a'),ord('s')]:
+            self.previous()
             return
         if keycode==co_code:
             openFileDialog = wx.FileDialog(self,_('Open BPG file'),"","",\
@@ -613,7 +686,7 @@ class DFrame(wx.Frame):
                         self.img.size[1],self.img.convert("RGB").tostring()))
                 if len(self.imginfo): self.stitle(self.filelist[self.index]+\
                     ' ('+self.imginfo+')')
-                else: self.stitle(_('Press Ctrl+O to open BPG file...'))
+                else: self.deftitle()
             return
         if keycode==ord('-'):
             if self.img and self.scale>self.autoscale:
@@ -628,28 +701,29 @@ class DFrame(wx.Frame):
                         self.img.size[1],self.img.convert("RGB").tostring()))
                 if len(self.imginfo): self.stitle(self.filelist[self.index]+\
                     ' ('+self.imginfo+')')
-                else: self.stitle(_('Press Ctrl+O to open BPG file...'))
+                else: self.deftitle()
             return
         if keycode==ord('*'):
             if self.img:
                 csize=self.GetClientSize()
-                d=0.0
-                x=self.img.size[0]
-                y=self.img.size[1]
-                self.bitmap_text=str(x)+'x'+str(y)
-                d0=float(csize[0])/float(x)
-                d1=float(csize[1])/float(y)
-                if d0<1.0 or d1<1.0:
-                    d=d0 if d0<d1 else d1
-                    x=floor(x*d)
-                    y=floor(y*d)
-                    scale=d*100.0
-                    if self.scale!=scale:
-                        self.scale=scale
-                        self.showbitmap(self.scalebitmap(x,y))
-                if len(self.imginfo): self.stitle(self.filelist[self.index]+\
-                    ' ('+self.imginfo+')')
-                else: self.stitle(_('Press Ctrl+O to open BPG file...'))
+                bsize=self.bitmap.GetSize()
+                x=bsize[0]
+                y=bsize[1]
+                if csize[0]<x or csize[1]<y:
+                    x=self.img.size[0]
+                    y=self.img.size[1]
+                    d0=float(csize[0])/float(x)
+                    d1=float(csize[1])/float(y)
+                    self.scale=d0 if d0<d1 else d1
+                    x=floor(x*self.scale)
+                    y=floor(y*self.scale)
+                    self.scale*=100.0
+                    self.autoscale=self.scale
+                    self.showbitmap(self.scalebitmap(x,y))
+                    if len(self.imginfo):
+                        self.stitle(self.filelist[self.index]+\
+                        ' ('+self.imginfo+')')
+                    else: self.deftitle()
             return
         if keycode==cr_code:
             self.rotate(True)
