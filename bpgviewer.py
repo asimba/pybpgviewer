@@ -63,37 +63,39 @@ class translator():
 t=translator()
 
 t.voc=pickle.loads(zlib.decompress(base64.decodestring("\
-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\
+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\
+DI4er5Etym2dIo//B+VVV70=\
 ")))
 
 def _(s):
@@ -284,6 +286,10 @@ class DFrame(wx.Frame):
     def deftitle(self):
         self.stitle(_('Press Ctrl+O to open BPG file...'))
 
+    def getcsize(self):
+        cr=wx.Display().GetClientArea()
+        return cr[2]-cr[0],cr[3]-cr[1]
+
     def scalebitmap(self,width,height):
         if self.img:
             r=self.img.resize((int(width),int(height)),Image.NEAREST)
@@ -297,18 +303,17 @@ class DFrame(wx.Frame):
             self.bitmap.SetBitmap(bitmap)
             self.imginfo='%.2f'%self.scale+'%@'+self.bitmap_text
             self.bitmap.SetToolTipString(self.imginfo)
-            x=bitmap.GetWidth()
-            y=bitmap.GetHeight()
+            x,y=bitmap.GetSize()
             self.panel.SetVirtualSize((x,y))
             self.panel.SetScrollbars(1,1,x,y)
             self.panel.SetScrollRate(1,1)
-            crect=wx.Display().GetClientArea()
-            if not(x>=crect[2]) and not(y>=crect[3]) and\
-                not(self.IsMaximized()) and not(self.IsFullScreen()):
+            cx,cy=self.getcsize()
+            if x<=cx and y<=cy and not(self.IsMaximized()) and\
+                not(self.IsFullScreen()):
                 self.panel.SetInitialSize(size=(x,y))
                 self.panel.SetClientSize((x,y))
                 self.Fit()
-                wx.CallAfter(self.Center)
+                self.Center()
             self.Layout()
 
     def emptybitmap(self):
@@ -329,19 +334,10 @@ class DFrame(wx.Frame):
 
     def autoscaled(self):
         if self.img:
-            if self.IsMaximized():
-                cr=self.GetClientSize()
-                cx=cr[0]
-                cy=cr[1]
+            if self.IsMaximized() or self.max: cx,cy=self.GetClientSize()
             else:
-                if self.IsFullScreen():
-                    cr=wx.DisplaySize()
-                    cx=cr[0]
-                    cy=cr[1]
-                else:
-                    cr=wx.Display().GetClientArea()
-                    cx=cr[2]
-                    cy=cr[3]
+                if self.IsFullScreen(): cx,cy=wx.DisplaySize()
+                else: cx,cy=self.getcsize()
             d=0.0
             x=self.img.size[0]
             y=self.img.size[1]
@@ -350,8 +346,6 @@ class DFrame(wx.Frame):
             d1=float(cy)/float(y)
             if d0<1.0 or d1<1.0:
                 d=d0 if d0<d1 else d1
-                if not(self.IsMaximized()) and not(self.IsFullScreen()):
-                    d*=0.95
                 x=floor(x*d)
                 y=floor(y*d)
                 self.scale=d*100.0
@@ -396,6 +390,7 @@ class DFrame(wx.Frame):
         kwds["title"]=title
         kwds["parent"]=parent
         wx.Frame.__init__(self,*args,**kwds)
+        self.max=False
         self.codepage=locale.getdefaultlocale()[1]
         self.bpgpath=bpggetcmd(scriptpath)
         self.scale=100.0
@@ -435,7 +430,6 @@ class DFrame(wx.Frame):
         self.panel.Bind(wx.EVT_MOUSE_EVENTS,self.drag)
         self.bitmap.Bind(wx.EVT_MOTION,self.drag)
         self.bitmap.Bind(wx.EVT_MOUSE_EVENTS,self.drag)
-        self.Bind(wx.EVT_MAXIMIZE,self.maxframe)
         self.Bind(wx.EVT_SIZE,self.fresize)
         if osflag: self._icon=bpglogo.GetIcon()
         else:
@@ -504,26 +498,32 @@ class DFrame(wx.Frame):
                 ' ('+self.imginfo+')')
 
     def fresize(self,event):
-        cr=self.GetClientSize()
-        x=cr[0]
-        y=cr[1]
+        x,y=self.GetClientSize()
         self.panel.SetInitialSize(size=(x,y))
         self.panel.SetClientSize((x,y))
+        wx,wy=self.GetSize()
+        cx,cy=self.getcsize()
+        if wx==cx and wy==cy and not(self.IsFullScreen()):
+            self.max=True
+            self.maxframe()
+        else: self.max=False
         self.Fit()
         self.Layout()
     
-    def maxframe(self,event):
-        if event!=None: event.Skip()
-        if self.scale==self.autoscale:
-            wx.CallAfter(self.showbitmap,self.autoscaled())
-            if len(self.imginfo): self.stitle(self.filelist[self.index]+\
-                ' ('+self.imginfo+')')
-            else: self.deftitle()
+    def maxframe(self):
+        self.showbitmap(self.autoscaled())
+        if len(self.imginfo): self.stitle(self.filelist[self.index]+\
+            ' ('+self.imginfo+')')
+        else: self.deftitle()
 
     def maximize(self):
         if not(self.IsFullScreen()):
-            if self.IsMaximized(): self.Maximize(False)
-            else: self.Maximize()
+            if self.IsMaximized() or self.max:
+                self.max=False
+                self.Maximize(False)
+            else:
+                self.max=True
+                self.Maximize()
 
     def keydown(self,event):
         keycode=event.GetKeyCode()
@@ -537,20 +537,20 @@ class DFrame(wx.Frame):
             self.next()
             return
         if keycode in [wx.WXK_LEFT,wx.WXK_NUMPAD_LEFT]:
-            self.panel.Scroll(self.panel.GetScrollPos(wx.HORIZONTAL)-1,\
+            self.panel.Scroll(self.panel.GetScrollPos(wx.HORIZONTAL)-5,\
                 self.panel.GetScrollPos(wx.VERTICAL))
             return
         if keycode in [wx.WXK_RIGHT,wx.WXK_NUMPAD_RIGHT]:
-            self.panel.Scroll(self.panel.GetScrollPos(wx.HORIZONTAL)+1,\
+            self.panel.Scroll(self.panel.GetScrollPos(wx.HORIZONTAL)+5,\
                 self.panel.GetScrollPos(wx.VERTICAL))
             return
         if keycode in [wx.WXK_UP,wx.WXK_NUMPAD_UP]:
             self.panel.Scroll(self.panel.GetScrollPos(wx.HORIZONTAL),\
-                self.panel.GetScrollPos(wx.VERTICAL)-1)
+                self.panel.GetScrollPos(wx.VERTICAL)-5)
             return
         if keycode in [wx.WXK_DOWN,wx.WXK_NUMPAD_DOWN]:
             self.panel.Scroll(self.panel.GetScrollPos(wx.HORIZONTAL),\
-                self.panel.GetScrollPos(wx.VERTICAL)+1)
+                self.panel.GetScrollPos(wx.VERTICAL)+5)
             return
         if keycode==wx.WXK_F1:
             wx.MessageBox(_('This is BPG image file viewer. Hot keys:\n')+\
@@ -560,6 +560,7 @@ class DFrame(wx.Frame):
             _('Ctrl-C - save a copy of the opened file\n')+\
             _('Ctrl-R - rotate 90 degrees clockwise\n')+\
             _('Ctrl-L - rotate 90 degrees counterclockwise\n')+\
+            _('Ctrl-F - toggle full screen mode\n')+\
             _('+ - zoom in (up to 100%)\n')+\
             _('- - zoom out (down to the smallest available size)\n')+\
             _('* - zoom out to fit window area\n')+\
@@ -610,8 +611,9 @@ class DFrame(wx.Frame):
         if keycode==cf_code:
             if self.IsFullScreen():
                 self.ShowFullScreen(False,style=wx.DEFAULT_FRAME_STYLE)
-            else: self.ShowFullScreen(True,style=wx.FULLSCREEN_ALL)
-            self.maxframe(None)
+            else:
+                self.ShowFullScreen(True,style=wx.FULLSCREEN_ALL)
+                self.maxframe()
             return
         if keycode in [rt_code,ord('D'),ord('W'),ord('d'),ord('w')]:
             self.next()
