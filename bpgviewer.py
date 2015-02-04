@@ -288,7 +288,9 @@ class DFrame(wx.Frame):
 
     def getcsize(self):
         cr=wx.Display().GetClientArea()
-        return cr[2]-cr[0],cr[3]-cr[1]
+        cw=self.GetSize()
+        cc=self.GetClientSize()
+        return cr[2]-cr[0]-cw[0]+cc[0],cr[3]-cr[1]-cw[1]+cc[1]
 
     def scalebitmap(self,width,height):
         if self.img:
@@ -501,11 +503,14 @@ class DFrame(wx.Frame):
         x,y=self.GetClientSize()
         self.panel.SetInitialSize(size=(x,y))
         self.panel.SetClientSize((x,y))
-        wx,wy=self.GetSize()
-        cx,cy=self.getcsize()
-        if wx==cx and wy==cy and not(self.IsFullScreen()):
-            self.max=True
-            self.autoimg()
+        if not(self.IsFullScreen()):
+            fx,fy=self.GetSize()
+            cr=wx.Display().GetClientArea()
+            cx=cr[2]-cr[0]
+            cy=cr[3]-cr[1]
+            if fx==cx and fy==cy or self.IsMaximized():
+                self.max=True
+                self.autoimg()
         else: self.max=False
         self.Fit()
         self.Layout()
