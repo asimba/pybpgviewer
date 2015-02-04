@@ -417,11 +417,11 @@ class DFrame(wx.Frame):
         self.index=0
         self.SetInitialSize(size=(400,300))
         self.panel=wx.ScrolledWindow(self,-1,style=wx.WANTS_CHARS)
-        self.sizer=wx.BoxSizer(wx.VERTICAL)
-        self.psizer=wx.BoxSizer(wx.VERTICAL)
-        self.sizer.Add(self.panel,1,wx.ALIGN_CENTER|wx.EXPAND,0)
+        self.sizer=wx.BoxSizer(wx.HORIZONTAL)
+        self.psizer=wx.BoxSizer(wx.HORIZONTAL)
+        self.sizer.Add(self.panel,1,wx.CENTER|wx.EXPAND,0)
         self.bitmap=wx.StaticBitmap(self.panel,bitmap=self.emptybitmap())
-        self.psizer.Add(self.bitmap,1,wx.ALIGN_CENTER|wx.EXPAND,0)
+        self.psizer.Add(self.bitmap,1,wx.CENTER|wx.EXPAND,0)
         self.SetSizer(self.sizer)
         self.panel.SetSizer(self.psizer)
         self.showimage(title)
@@ -512,7 +512,6 @@ class DFrame(wx.Frame):
                 self.max=True
                 self.autoimg()
         else: self.max=False
-        self.Fit()
         self.Layout()
     
     def autoimg(self):
@@ -617,7 +616,6 @@ class DFrame(wx.Frame):
             if self.IsFullScreen():
                 self.ShowFullScreen(False,style=wx.DEFAULT_FRAME_STYLE)
             else:
-                self.max=False
                 self.ShowFullScreen(True,style=wx.FULLSCREEN_ALL)
                 self.autoimg()
             return
