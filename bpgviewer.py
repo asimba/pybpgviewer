@@ -310,15 +310,14 @@ class DFrame(wx.Frame):
             self.panel.SetScrollbars(1,1,x,y)
             self.panel.SetScrollRate(1,1)
             cx,cy=self.getcsize()
-            if x<=cx and y<=cy and not(self.IsMaximized()) and\
-                not(self.IsFullScreen()):
+            if not(self.IsMaximized()) and not(self.IsFullScreen()) and\
+                x<=cx and y<=cy:
                 self.panel.SetInitialSize(size=(x,y))
                 self.panel.SetClientSize((x,y))
                 self.Layout()
                 self.Fit()
                 self.Center()
-                return
-            self.Layout()
+            else: self.Layout()
 
     def emptybitmap(self):
         buffer=wx.EmptyBitmap(400,300)
@@ -511,14 +510,15 @@ class DFrame(wx.Frame):
             if fx==cx and fy==cy or self.IsMaximized():
                 self.max=True
                 self.autoimg()
-        else: self.max=False
+            else: self.max=False
         self.Layout()
     
     def autoimg(self):
-        if self.scale==self.autoscale: self.showbitmap(self.autoscaled())
-        if len(self.imginfo): self.stitle(self.filelist[self.index]+\
-            ' ('+self.imginfo+')')
-        else: self.deftitle()
+        if self.scale==self.autoscale:
+            self.showbitmap(self.autoscaled())
+            if len(self.imginfo): self.stitle(self.filelist[self.index]+\
+                ' ('+self.imginfo+')')
+            else: self.deftitle()
 
     def maximize(self):
         if not(self.IsFullScreen()):
