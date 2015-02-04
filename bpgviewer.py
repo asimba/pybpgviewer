@@ -31,7 +31,7 @@ from os.path import exists,isfile,dirname,basename,realpath,join
 from tempfile import mkstemp
 from shutil import copyfile
 from subprocess import Popen,PIPE,STDOUT
-from math import floor,fabs
+from math import floor
 import StringIO
 from platform import system
 import locale,pickle,base64,zlib
@@ -505,12 +505,12 @@ class DFrame(wx.Frame):
         cx,cy=self.getcsize()
         if wx==cx and wy==cy and not(self.IsFullScreen()):
             self.max=True
-            self.maxframe()
+            self.autoimg()
         else: self.max=False
         self.Fit()
         self.Layout()
     
-    def maxframe(self):
+    def autoimg(self):
         self.showbitmap(self.autoscaled())
         if len(self.imginfo): self.stitle(self.filelist[self.index]+\
             ' ('+self.imginfo+')')
@@ -613,7 +613,7 @@ class DFrame(wx.Frame):
                 self.ShowFullScreen(False,style=wx.DEFAULT_FRAME_STYLE)
             else:
                 self.ShowFullScreen(True,style=wx.FULLSCREEN_ALL)
-                self.maxframe()
+                self.autoimg()
             return
         if keycode in [rt_code,ord('D'),ord('W'),ord('d'),ord('w')]:
             self.next()
