@@ -314,8 +314,10 @@ class DFrame(wx.Frame):
                 not(self.IsFullScreen()):
                 self.panel.SetInitialSize(size=(x,y))
                 self.panel.SetClientSize((x,y))
+                self.Layout()
                 self.Fit()
                 self.Center()
+                return
             self.Layout()
 
     def emptybitmap(self):
@@ -336,9 +338,9 @@ class DFrame(wx.Frame):
 
     def autoscaled(self):
         if self.img:
-            if self.IsMaximized() or self.max: cx,cy=self.GetClientSize()
+            if self.IsFullScreen(): cx,cy=wx.DisplaySize()
             else:
-                if self.IsFullScreen(): cx,cy=wx.DisplaySize()
+                if self.IsMaximized() or self.max: cx,cy=self.GetClientSize()
                 else: cx,cy=self.getcsize()
             d=0.0
             x=self.img.size[0]
@@ -367,9 +369,9 @@ class DFrame(wx.Frame):
                     if self.filelist[self.index]==realpath(filename): break
                     else: self.index+=1
                     if self.index>=len(self.filelist): break
-            self.showbitmap(self.autoscaled())
-        else: self.showempty()
-        if len(self.imginfo): self.stitle(filename+' ('+self.imginfo+')')
+        self.showbitmap(self.autoscaled())
+        if len(self.imginfo): self.stitle(self.filelist[self.index]+\
+            ' ('+self.imginfo+')')
         else: self.deftitle()
 
     def getfilelist(self,dirname):
@@ -417,11 +419,9 @@ class DFrame(wx.Frame):
         self.panel=wx.ScrolledWindow(self,-1,style=wx.WANTS_CHARS)
         self.sizer=wx.BoxSizer(wx.VERTICAL)
         self.psizer=wx.BoxSizer(wx.VERTICAL)
-        self.sizer.Add(self.panel,1,wx.ALIGN_CENTER_HORIZONTAL|\
-            wx.ALIGN_CENTER_VERTICAL|wx.ALL|wx.EXPAND,0)
+        self.sizer.Add(self.panel,1,wx.ALIGN_CENTER|wx.EXPAND,0)
         self.bitmap=wx.StaticBitmap(self.panel,bitmap=self.emptybitmap())
-        self.psizer.Add(self.bitmap,1,wx.ALIGN_CENTER_HORIZONTAL|\
-            wx.ALIGN_CENTER_VERTICAL|wx.ALL|wx.ADJUST_MINSIZE,0)
+        self.psizer.Add(self.bitmap,1,wx.ALIGN_CENTER|wx.EXPAND,0)
         self.SetSizer(self.sizer)
         self.panel.SetSizer(self.psizer)
         self.showimage(title)
@@ -516,7 +516,7 @@ class DFrame(wx.Frame):
         self.Layout()
     
     def autoimg(self):
-        self.showbitmap(self.autoscaled())
+        if self.scale==self.autoscale: self.showbitmap(self.autoscaled())
         if len(self.imginfo): self.stitle(self.filelist[self.index]+\
             ' ('+self.imginfo+')')
         else: self.deftitle()
@@ -617,6 +617,7 @@ class DFrame(wx.Frame):
             if self.IsFullScreen():
                 self.ShowFullScreen(False,style=wx.DEFAULT_FRAME_STYLE)
             else:
+                self.max=False
                 self.ShowFullScreen(True,style=wx.FULLSCREEN_ALL)
                 self.autoimg()
             return
@@ -705,15 +706,13 @@ class DFrame(wx.Frame):
             return
         if keycode==ord('*'):
             if self.img:
-                csize=self.GetClientSize()
-                bsize=self.bitmap.GetSize()
-                x=bsize[0]
-                y=bsize[1]
-                if csize[0]<x or csize[1]<y:
+                cx,cy=self.GetClientSize()
+                x,y=self.bitmap.GetSize()
+                if cx<x or cy<y:
                     x=self.img.size[0]
                     y=self.img.size[1]
-                    d0=float(csize[0])/float(x)
-                    d1=float(csize[1])/float(y)
+                    d0=float(cx)/float(x)
+                    d1=float(cy)/float(y)
                     self.scale=d0 if d0<d1 else d1
                     x=floor(x*self.scale)
                     y=floor(y*self.scale)
