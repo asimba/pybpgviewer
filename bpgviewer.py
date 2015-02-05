@@ -675,7 +675,7 @@ class DFrame(wx.Frame):
                     copyfile(self.filelist[self.index],dst)
                 except: errmsgbox(_('Unable to save')+' \"%s\"!'%dst)
                 return
-        if keycode==ord('+'):
+        if keycode in [ord('+'),ord('=')]:
             if self.img and self.scale<100.0:
                 self.stitle(_('Zooming in...'))
                 self.scale+=5.0
@@ -705,7 +705,7 @@ class DFrame(wx.Frame):
                     ' ('+self.imginfo+')')
                 else: self.deftitle()
             return
-        if keycode==ord('*'):
+        if keycode in [ord('*'),ord('8')]:
             if self.img:
                 cx,cy=self.GetClientSize()
                 x,y=self.bitmap.GetSize()
