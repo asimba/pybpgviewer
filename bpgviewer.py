@@ -294,7 +294,7 @@ class DFrame(wx.Frame):
 
     def scalebitmap(self,width,height):
         if self.img:
-            r=self.img.resize((int(width),int(height)),Image.NEAREST)
+            r=self.img.resize((int(width),int(height)),Image.ANTIALIAS)
             return wx.BitmapFromBuffer(r.size[0],\
                         r.size[1],r.convert("RGB").tostring())
         else: return None
