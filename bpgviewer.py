@@ -190,11 +190,8 @@ def errmsgbox(msg):
 
 def bpggetcmd(scriptname):
     binname='bpgdec'
-    if system()=="Windows":
-        binname+='.exe'
-        bpgpath=realpath(binname)
-    else:
-        bpgpath='/usr/bin/'+binname
+    if osflag: bpgpath='/usr/bin/'+binname
+    else: bpgpath=realpath(binname)+'.exe'
     if not(exists(bpgpath)):
         bpgpath=join(dirname(realpath(scriptname)),binname)
     if not(isfile(bpgpath)):
@@ -202,12 +199,12 @@ def bpggetcmd(scriptname):
         print msg
         errmsgbox(msg)
         exit()
-    bpgpath+=' -o '
     return bpgpath
 
 class DFrame(wx.Frame):
-    def bpgdecode(self,cmd,filename):
+    def bpgdecode(self,filename):
         msg=None
+        cmd=self.bpgpath+' -o '
         if self.img:
             del self.img
             self.img=None
@@ -292,11 +289,16 @@ class DFrame(wx.Frame):
         cc=self.GetClientSize()
         return cr[2]-cr[0]-cw[0]+cc[0],cr[3]-cr[1]-cw[1]+cc[1]
 
+    def bitmapfrompil(self,img):
+        if img.mode[-1]=='A': return wx.BitmapFromBufferRGBA(img.size[0],\
+                img.size[1],img.convert("RGBA").tostring())
+        else: return wx.BitmapFromBuffer(img.size[0],img.size[1],\
+                img.convert("RGB").tostring())
+
     def scalebitmap(self,width,height):
         if self.img:
-            r=self.img.resize((int(width),int(height)),Image.ANTIALIAS)
-            return wx.BitmapFromBuffer(r.size[0],\
-                        r.size[1],r.convert("RGB").tostring())
+            return self.bitmapfrompil(self.img.resize((int(width),\
+                int(height)),Image.ANTIALIAS))
         else: return None
 
     def showbitmap(self,bitmap):
@@ -354,13 +356,12 @@ class DFrame(wx.Frame):
                 self.scale=d*100.0
                 self.autoscale=self.scale
                 return self.scalebitmap(x,y)
-            else: return wx.BitmapFromBuffer(self.img.size[0],\
-                    self.img.size[1],self.img.convert("RGB").tostring())
+            else: return self.bitmapfrompil(self.img)
         return None
 
     def showimage(self,filename):
         if type(filename) is unicode: filename=filename.encode(self.codepage)
-        if len(filename) and self.bpgdecode(self.bpgpath,filename):
+        if len(filename) and self.bpgdecode(filename):
             if len(self.filelist)==0:
                 self.filelist=self.getfilelist(dirname(realpath(filename)))
                 self.index=0
@@ -402,7 +403,7 @@ class DFrame(wx.Frame):
         self.img=None
         self.imginfo=''
         self.fifo=''
-        t,self.fifo=mkstemp(suffix='.ppm',prefix='')
+        t,self.fifo=mkstemp(suffix='.png',prefix='')
         close(t)
         remove(self.fifo)
         if osflag:
