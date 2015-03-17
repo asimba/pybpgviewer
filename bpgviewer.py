@@ -188,12 +188,12 @@ def errmsgbox(msg):
     wx.MessageBox(msg,_('Error!'),wx.OK|wx.ICON_ERROR)
     if not(wxapp): app.Exit()
 
-def bpggetcmd(scriptname):
+def bpggetcmd():
     binname='bpgdec'
     if osflag: bpgpath='/usr/bin/'+binname
-    else: bpgpath=realpath(binname)+'.exe'
+    else: binname+='.exe';bpgpath=realpath(binname)
     if not(exists(bpgpath)):
-        bpgpath=join(dirname(realpath(scriptname)),binname)
+        bpgpath=join(dirname(realpath(argv[0])),binname)
     if not(isfile(bpgpath)):
         msg=_('BPG decoder not found!\n')
         print msg
@@ -387,7 +387,7 @@ class DFrame(wx.Frame):
             except: pass
         return filelist
 
-    def __init__(self,parent,scriptpath,title):
+    def __init__(self,parent,title):
         kwds={}
         args=[]
         kwds["style"]=wx.DEFAULT_FRAME_STYLE
@@ -396,7 +396,7 @@ class DFrame(wx.Frame):
         wx.Frame.__init__(self,*args,**kwds)
         self.max=False
         self.codepage=locale.getdefaultlocale()[1]
-        self.bpgpath=bpggetcmd(scriptpath)
+        self.bpgpath=bpggetcmd()
         self.scale=100.0
         self.autoscale=100.0
         self.bitmap_text=''
@@ -740,14 +740,14 @@ class DFrame(wx.Frame):
             except: pass
 
 class bpgframe(wx.App):
-    def __init__(self,parent,title,filename):
+    def __init__(self,parent,filename):
         super(bpgframe,self).__init__(parent)
-        frame=DFrame(None,title,filename)
+        frame=DFrame(None,filename)
         self.SetTopWindow(frame)
         frame.Show()
 
 if __name__=='__main__':
     wxapp=True
-    if len(argv)==1: app=bpgframe(None,argv[0],'')
-    else: app=bpgframe(None,argv[0],realpath(argv[1]))
+    if len(argv)==1: app=bpgframe(None,'')
+    else: app=bpgframe(None,realpath(argv[1]))
     app.MainLoop()
