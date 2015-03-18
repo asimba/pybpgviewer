@@ -6,7 +6,7 @@ This script allows you to view BPG Images.
 _Dependencies of the source script:_  
 
 ---  
-* [bpgdec](http://bellard.org/bpg/)  
+* patched version of [bpgdec](http://bellard.org/bpg/) (diff file supplied)  
 * [python 2.7.x](https://www.python.org/)  
 * [wxPython 3.0.x.x](http://www.wxpython.org/)  
 * [Python Imaging Library (PIL) 1.1.7](http://www.pythonware.com/products/pil/)  
