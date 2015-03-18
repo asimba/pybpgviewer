@@ -1,0 +1,128 @@
+48c48
+<     
+---
+> 
+59c59
+<         
+---
+> 
+61c61
+<     
+---
+> 
+71a72,115
+> static void rgba_save(BPGDecoderContext *img, const char *filename)
+> {
+>     BPGImageInfo img_info_s,*img_info=&img_info_s;
+>     BPGDecoderOutputFormat out_fmt;
+>     FILE *f;
+>     int w, h, y;
+>     uint8_t *rgb_line;
+> 
+>     bpg_decoder_get_info(img,img_info);
+> 
+>     w = img_info->width;
+>     h = img_info->height;
+> 
+>     f = fopen(filename,"wb");
+>     if (!f) {
+>         fprintf(stderr, "%s: I/O error\n", filename);
+>         exit(1);
+>     }
+> 
+>     if(img_info->has_alpha){
+>       fprintf(f,"a");
+>       out_fmt=BPG_OUTPUT_FORMAT_RGBA32;
+>       rgb_line=malloc(4*w);
+>     }
+>     else{
+>       fprintf(f,"s");
+>       out_fmt=BPG_OUTPUT_FORMAT_RGB24;
+>       rgb_line=malloc(3*w);
+>     }
+> 
+>     fwrite(&w,sizeof(int),1,f);
+>     fwrite(&h,sizeof(int),1,f);
+> 
+>     bpg_decoder_start(img, out_fmt);
+>     for (y = 0; y < h; y++) {
+>       bpg_decoder_get_line(img,rgb_line);
+>       if(img_info->has_alpha) fwrite(rgb_line,1,w*4,f);
+>       else fwrite(rgb_line,1,w*3,f);
+>     }
+>     fclose(f);
+> 
+>     free(rgb_line);
+> }
+> 
+127c171
+<         
+---
+> 
+139c183
+<     
+---
+> 
+151c195
+<     
+---
+> 
+161c205
+<     
+---
+> 
+163c207
+<     
+---
+> 
+200c244
+<         
+---
+> 
+233c277
+<         printf(" alpha=%d premul=%d", 
+---
+>         printf(" alpha=%d premul=%d",
+241c285
+<            
+---
+> 
+262c306
+<            "-o outfile.[ppm|png]   set the output filename (default = out.png)\n"
+---
+>            "-o outfile.[ppm|png|rgb]   set the output filename (default = out.png)\n"
+275c319
+<     
+---
+> 
+327c371
+<     
+---
+> 
+338,349c382,394
+< #ifdef USE_PNG
+<     p = strrchr(outfilename, '.');
+<     if (p)
+<         p++;
+< 
+<     if (p && strcasecmp(p, "ppm") != 0) {
+<         png_save(img, outfilename, bit_depth);
+<     } else 
+< #endif
+<     {
+<         ppm_save(img, outfilename);
+<     }
+---
+>     p=strrchr(outfilename,'.');
+>     if(p){
+>       p++;
+>       if(strcasecmp(p,"rgb")==0) rgba_save(img, outfilename);
+>       else{
+>         if(strcasecmp(p,"ppm")==0) ppm_save(img, outfilename);
+> #ifdef USE_PNG
+>         else if(strcasecmp(p,"png")==0) png_save(img, outfilename, bit_depth);
+>           else ppm_save(img, outfilename);
+> #endif
+>       }
+>     }
+>     else ppm_save(img, outfilename);
