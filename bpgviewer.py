@@ -33,6 +33,7 @@ from shutil import copyfile
 from subprocess import Popen,PIPE,STDOUT
 from math import floor
 import StringIO
+from struct import unpack
 from platform import system
 import locale,pickle,base64,zlib
 
@@ -190,10 +191,8 @@ def errmsgbox(msg):
 
 def bpggetcmd():
     binname='bpgdec'
-    if osflag: bpgpath='/usr/bin/'+binname
-    else: binname+='.exe';bpgpath=realpath(binname)
-    if not(exists(bpgpath)):
-        bpgpath=join(dirname(realpath(argv[0])),binname)
+    if not osflag: binname+='.exe'
+    bpgpath=join(dirname(realpath(argv[0])),binname)
     if not(isfile(bpgpath)):
         msg=_('BPG decoder not found!\n')
         print msg
@@ -259,7 +258,11 @@ class DFrame(wx.Frame):
                         win32pipe.DisconnectNamedPipe(tpipe)
                         f.wait()
                     if len(imbuffer):
-                        try: self.img=Image.open(StringIO.StringIO(imbuffer))
+                        if imbuffer[0]=='a': mode='RGBA'
+                        else: mode='RGB'
+                        x,=unpack("i",imbuffer[1:5])
+                        y,=unpack("i",imbuffer[5:9])
+                        try: self.img=Image.fromstring(mode,(x,y),imbuffer[9:])
                         except: err=1
                         del imbuffer
                     else: err=1
@@ -403,7 +406,7 @@ class DFrame(wx.Frame):
         self.img=None
         self.imginfo=''
         self.fifo=''
-        t,self.fifo=mkstemp(suffix='.png',prefix='')
+        t,self.fifo=mkstemp(suffix='.rgb',prefix='')
         close(t)
         remove(self.fifo)
         if osflag:
