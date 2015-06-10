@@ -1,0 +1,95 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+'''
+Simple BPG Image viewer.
+
+Copyright (c) 2014-2015, Alexey Simbarsky
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+* Redistributions of source code must retain the above copyright notice, this
+list of conditions and the following disclaimer.
+* Redistributions in binary form must reproduce the above copyright notice,
+this list of conditions and the following disclaimer in the documentation
+and/or other materials provided with the distribution.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+'''
+
+from sys import argv,exit
+from os import access,R_OK,close,remove
+from os.path import isfile,dirname,basename,realpath,join
+from tempfile import mkstemp
+from subprocess import Popen,PIPE,STDOUT
+from struct import unpack
+from os import mkfifo,O_RDONLY,O_NONBLOCK
+from os import open as osopen
+from os import read as osread
+from os import close as osclose
+import StringIO
+import locale
+import errno
+
+try: import Image
+except: exit()
+
+def bpgthumbnail(ifile,ofile,size):
+    cmd=join(dirname(realpath(argv[0])),'bpgdec')
+    if not(isfile(cmd)): exit()
+    cmd+=' -o '
+    if type(ifile) is unicode: ifile=ifile.encode(locale.getdefaultlocale()[1])
+    if type(ofile) is unicode: ofile=ofile.encode(locale.getdefaultlocale()[1])
+    if len(ifile)>4 and ifile[-4:].lower()=='.bpg':
+        if not(isfile(ifile) and access(ifile,R_OK)):
+            err('Unable to open \"%s\"!'%ifile)
+        t,fifo=mkstemp(suffix='.rgb',prefix='')
+        close(t)
+        remove(fifo)
+        try:
+            imbuffer=''
+            mkfifo(fifo,0700)
+            ffifo=osopen(fifo,O_RDONLY|O_NONBLOCK)
+            cmd+=fifo+' "'+realpath(ifile)+'"'+' >/dev/null 2>&1'
+            f=Popen(cmd,shell=True,stdin=None,stdout=None,stderr=None)
+            if ffifo:
+                while True:
+                    if f.poll()!=None: break;
+                    try: data=osread(ffifo,16777216)
+                    except OSError as e:
+                        if e.errno==errno.EAGAIN or\
+                            e.errno==errno.EWOULDBLOCK: data=''
+                        else: break
+                    if len(data): imbuffer+=data
+                osclose(ffifo)
+            try: remove(fifo)
+            except: pass
+            img=None
+            if len(imbuffer):
+                if imbuffer[0]=='a': mode='RGBA'
+                else: mode='RGB'
+                x,=unpack("i",imbuffer[1:5])
+                y,=unpack("i",imbuffer[5:9])
+                img=Image.fromstring(mode,(x,y),imbuffer[9:])
+                del imbuffer
+            else: raise RuntimeError()
+            img.thumbnail(size,Image.ANTIALIAS)
+            img.save(ofile,'PNG',optimize=True)
+        except: exit()
+    else: exit()
+
+if __name__=='__main__':
+    s=128
+    if len(argv)==4:
+        try: s=int(argv[3])
+        except: pass
+    elif len(argv)<3: exit()
+    bpgthumbnail(argv[1],argv[2],(s,s))
