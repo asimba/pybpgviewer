@@ -1,0 +1,5 @@
+To view BPG image thumbnails in Nautilus follow instructions below:
+1) Install bpgviewer_1.20-ubuntu_i386.deb
+2) In the terminal window execute following commands:
+    chmod 755 install.sh
+    sudo ./install.sh
