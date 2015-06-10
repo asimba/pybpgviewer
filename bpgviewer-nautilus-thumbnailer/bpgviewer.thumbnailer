@@ -1,0 +1,4 @@
+[Thumbnailer Entry]
+TryExec=/opt/bpgviewer/bin/bpgviewer-thumbnailer
+Exec=/opt/bpgviewer/bin/bpgviewer-thumbnailer %i %o %s
+MimeType=image/bpg;
