@@ -17,12 +17,13 @@ _Notes:_
 * large images will be scaled to fit screen area  
 * embedded translations: Russian,English  
 * thumbnails preview in Nautilus/Thunar (Ubuntu/Xubuntu 12.04/14.04 only)  
+* thumbnails preview in Dolphin (KDE 4) (Kubuntu 14.04) (don't forget to turn on BPG preview in Dolphin settings after package installation)  
 
 ---
 _Usage:_ python bpgviewer.py input.bpg (Or just run 'python bpgviewer.py' and then use 'Ctrl-O' to open BPG image file). 
 
 ---  
-In Ubuntu environment you can try [debian package for x86](https://github.com/asimba/pybpgviewer/releases/download/v1.20.1/bpgviewer_1.20.1-ubuntu_i386.deb) or [debian package for x86-64](https://github.com/asimba/pybpgviewer/releases/download/v1.20.1/bpgviewer_1.20.1-ubuntu_amd64.deb) (prebuilt plugins for the file browsers are included).  
+In Ubuntu environment you can try [debian package for x86](https://github.com/asimba/pybpgviewer/releases/download/v1.20.2/bpgviewer_1.20.2-ubuntu_i386.deb) or [debian package for x86-64](https://github.com/asimba/pybpgviewer/releases/download/v1.20.2/bpgviewer_1.20.2-ubuntu_amd64.deb) (prebuilt plugins for the file browsers are included).  
 
 ---  
 In MS Windows (Windows XP/Windows 7 32/64) environment you can use [statically linked](https://github.com/asimba/pybpgviewer/releases/download/v1.20/bpgviewer-1.20-win32-portable.7z) (by [cx_Freeze](http://cx-freeze.sourceforge.net/)) portable version or try the [installer](https://github.com/asimba/pybpgviewer/releases/download/v1.20/bpgviewer-1.20-setup.zip).  
