@@ -29,7 +29,7 @@ Boston, MA 02110-1301, USA.
 #include <tumbler/tumbler.h>
 #include <gdk-pixbuf/gdk-pixbuf.h>
 
-#include "libbpg.h"
+#include <libbpg.h>
 
 G_BEGIN_DECLS
 
