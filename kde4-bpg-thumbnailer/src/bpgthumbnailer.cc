@@ -21,9 +21,9 @@ Boston, MA 02110-1301, USA.
 #include <stdlib.h>
 #include <stdint.h>
 #include "bpgthumbnailer.h"
-#include "libbpg.h"
 
 extern "C"{
+#include <libbpg.h>
     KDE_EXPORT ThumbCreator *new_creator(){
         return new BPGThumbnailer;
     }
