@@ -20,7 +20,7 @@ _Notes:_
 * thumbnails preview in Dolphin (KDE 4) (Kubuntu 14.04) (don't forget to turn on BPG preview in Dolphin settings after package installation)  
 * thumbnails preview in Windows Explorer (for Windows Vista or higher)  
 
-_Linux Mint "Rafaela" (Mate) Notes:_
+_Linux Mint "Rafaela" (Mate) Notes:_  
 * To enable image thumbnail preview in Thunar you must install additionally thumbler (D-Bus thumbnailing service) and restart Thunar.  
 * To enable image thumbnail preview in Dolphin:  
   a) install following packages: kfind, baloo, kdebase-apps, kde-runtime  
