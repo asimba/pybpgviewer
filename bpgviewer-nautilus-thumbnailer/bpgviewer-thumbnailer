@@ -39,7 +39,9 @@ import StringIO
 import locale
 import errno
 
-try: import Image
+try:
+    from PIL import Image
+    from PIL.Image import core as _imaging
 except: exit()
 
 def bpgthumbnail(ifile,ofile,size):
@@ -78,7 +80,7 @@ def bpgthumbnail(ifile,ofile,size):
                 else: mode='RGB'
                 x,=unpack("i",imbuffer[1:5])
                 y,=unpack("i",imbuffer[5:9])
-                img=Image.fromstring(mode,(x,y),imbuffer[9:])
+                img=Image.frombytes(mode,(x,y),imbuffer[9:])
                 del imbuffer
             else: raise RuntimeError()
             img.thumbnail(size,Image.ANTIALIAS)
