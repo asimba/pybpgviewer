@@ -9,7 +9,7 @@ _Dependencies of the source script (viewer only):_
 * patched version of [bpgdec](http://bellard.org/bpg/) (diff file supplied)  
 * [python 2.7.x](https://www.python.org/)  
 * [wxPython 3.0.x.x](http://www.wxpython.org/)  
-* [Python Imaging Library (PIL) 1.1.7](http://www.pythonware.com/products/pil/)  
+* [Python Imaging Library (PIL) 1.1.7](http://www.pythonware.com/products/pil/) (or [Pillow 3.x.x](https://pillow.readthedocs.org/) at Ubuntu/Xubuntu 16.04)  
 * [Python for Windows Extensions](http://sourceforge.net/projects/pywin32/) (for Windows version only)
 
 ---
@@ -19,6 +19,9 @@ _Notes:_
 * thumbnails preview in Nautilus/Thunar (Ubuntu/Xubuntu 12.04/14.04 only)  
 * thumbnails preview in Dolphin (KDE 4) (Kubuntu 14.04) (don't forget to turn on BPG preview in Dolphin settings after package installation)  
 * thumbnails preview in Windows Explorer (for Windows Vista or higher)  
+
+_Ubuntu/Xubuntu 16.04 Notes:_  
+* You may need to run "sudo apt-get -f install" after package installation.  
 
 _Linux Mint "Rafaela" (Mate) Notes:_  
 * To enable image thumbnail preview in Thunar you must install additionally thumbler (D-Bus thumbnailing service) and restart Thunar.  
