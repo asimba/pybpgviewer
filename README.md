@@ -33,7 +33,7 @@ _Linux Mint "Rafaela" (Mate) Notes:_
 _Usage:_ python bpgviewer.py input.bpg (Or just run 'python bpgviewer.py' and then use 'Ctrl-O' to open BPG image file). 
 
 ---  
-In Ubuntu environment you can try [debian package for x86](https://github.com/asimba/pybpgviewer/releases/download/v1.21/bpgviewer_1.21-ubuntu_i386.deb) or [debian package for x86-64](https://github.com/asimba/pybpgviewer/releases/download/v1.21/bpgviewer_1.21-ubuntu_amd64.deb) (prebuilt plugins for the file browsers are included).  
+In Ubuntu environment you can try [debian package for x86](https://github.com/asimba/pybpgviewer/releases/download/v1.21/bpgviewer_1.21-ubuntu_i386.deb) or [debian package for x86-64](https://github.com/asimba/pybpgviewer/releases/download/v1.21/bpgviewer_1.21-ubuntu_amd64.deb) (prebuilt plugins for the file browsers are included) (or for Ubuntu 16.04: [x86](https://github.com/asimba/pybpgviewer/releases/download/v1.21/bpgviewer_1.21-ubuntu16.04_i386.deb) / [x86-64](https://github.com/asimba/pybpgviewer/releases/download/v1.21/bpgviewer_1.21-ubuntu16.04_amd64.deb)).  
 
 ---  
 In MS Windows (Windows XP/Windows 7/Windows 8.1/Windows 10 32/64) environment you can use [statically linked](https://github.com/asimba/pybpgviewer/releases/download/v1.21/bpgviewer-1.21-win32-portable.7z) (by [cx_Freeze](http://cx-freeze.sourceforge.net/)) portable version or try the [installer](https://github.com/asimba/pybpgviewer/releases/download/v1.21/bpgviewer-1.21-setup.zip).  
