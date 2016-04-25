@@ -3,7 +3,7 @@
 '''
 Simple BPG Image viewer.
 
-Copyright (c) 2014-2015, Alexey Simbarsky
+Copyright (c) 2014-2016, Alexey Simbarsky
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -65,38 +65,38 @@ t=translator()
 
 t.voc=pickle.loads(zlib.decompress(base64.decodestring("\
 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\
-QRa3L/PyzMwzw2GytmbXL/4pirs0X7FiUx8fH7+YrfnsMFnb6pdy8+/VjXrhzP76uLGE7einE8PT\
-hWeinwLeiGD43jFv1KmztZhV1fWLmzxaZJLVBUtkJmt5ok539XXebGVu4Qk5x4anhKdPbsc3HrlL\
-MhACRRTwtOC56EQRNop7Mlv7IM65XNbzm/X8Kl3d1vPT4iFnR+yuuJdM/S9ZfStZFUeZTFh6F63k\
-x1yJG2hxQxB363a4btnpICyiD7GdCKfsRTWxySKqiT/anBDDOMQk5lSf/MyJXBax5EgWscQjbEZ2\
-R2SVS9Q1B8IiwYfOMrbvLrWsSEHNAj+8uXyvABEXicahLMuiPABbc4AitztwSAK1oFPGCGWNxQkY\
-QYRL1kryPhjKb+xujZyDxwkKsJA4xzpoNXNAs7d1mR1dKFgUa5kzrScgiS3TDOHEBajogort6qHd\
-UGaUUCwolnfJg4J4IEhRslsFU1nqO324M2jNapRbUIslI2ug9Vy1P+x0O1PS1sVqpaJ6uckyFS+l\
-VJreFQnqZ1uQTXin31mjH9EMrxaSYLsXsb92G1D9/bbRYJRERaKbSIb27Xk9IVeGbBTPHrFe3Fjc\
-tsE8acXyomaR9vrRmfL3gTaHA+YQnelpIIklMcyCvHGJVpxE5iQQUduYhq9ZK4kScbfb4MzV0h4o\
-OV3Q4Tq61yF5+cd7QCzWB9sDHfxWB5uTk90JS04lul44Lr8i1NihEuslFBc7AGkvVzoHz69kvSnz\
-+en8b4W0+1Q+sFz+V3chZ4dafscC+bft2ZnCQ2ItEyoRIzlvQdaKLpMbkIbDYiCcnWqan5sMPE5X\
-JKUJe+TgLlECMh2OdiplVTEdjK8vdC1uc1PnY8cGGznDskzLRTwMOOVRPHTOuoikUpnKs3iO/KYF\
-Buc7ooGqbJVgUdWCVmsDHMPxvg6xW1LJBFbFc5faPWNVqaiUQy5zCoSq1RhoihN2Gu/FjCatrQgc\
-lurLTEaVZGle1VGWqZsE1GhBavRyRNEsCmgSRZxoY80J7+n/MlGPeshTgjgDilkpRGgBocIK95kY\
-5rchZ8KmXldI36rEoyVWBSMu1o+sWAL/1LGp+GebvATUbhF09fStyVjiO2La+MMdMacp1jmdtptc\
-JMKBuyAL6X4AGIPLn8dfT80ySh4s56+VmT+rVklBnx1u1lpiblm/vASvuFDWXSzrrxuH7EPh+w45\
-HHNrPmIvLmUMtBGIaZGQRjxjbtftoHalBCyLOlLpIrQU8V4pylaxOCviTw9phThzoci7foezq35l\
-lEN39Pi/TUmkpa/pINKDpRgGfXNw7y6qqzVeS/4O2TB/9AolJY9uaxukD0eNh1UnzA4T3c4pJ0MT\
-eKdynawUmbuP0gwAW6WfpfE90AkP6cRR3/e7e+VtvhcUu6TC9phTPMqq8e4eUAxbM3OrQ4w8GcrU\
-Xf6ojTW/tkDzeL+lU320psHLYpMn2NV5wC085BZ63R4dmrmLjeMjGQUtPSlpGzJPdAFw/cVcqwlE\
-1FIIFBsHFV4XEdc/IPP+WDbRGssfJGfV1el0cfb72QVYRPcyHnAML3z+wmo2iKGQuxK1Fk01Lj7S\
-lAtKaZWsPrAUfzRJeAr7VKci5bjSuVT1SUidfeAbvrudEE0mTOCyPhKCP29V86j+9ecF0MvI8ph9\
-UPH0ST5WJ4BLHxiBHwzu228c82SkmYT71T3mMazn0YAa9Lhdz/W0dNCu3B2HoD/smbcE4vKkwbrf\
-EBGdqk7lIo1yVpTsZrHJ6w17LDbsLnpkdfmoh3/ATQLCTexmy5Y5ijkC19HOZxwJbs8+ozI78qjD\
-tw+r+sDduyNt3ozzUjyynzlCGQOJ0bsqVnlQsQfDHALgQgFyIfxxOL0ZEUlwRIAUpUm6lT4LWEhA\
-Rg1TffICm6EgoM3QkRkzs3hTljInM4AAinaIRbtdvf8ImVF/kRzikC6fxseuCV1ouvLVzXr+Joo/\
-VesolvPf5tfN+GJdyvu02FSd+CGU0NAxI4wtG79thtEDGkXMYoSenzvJCLGa67Ea+jgtcl2TQijS\
-offlvndy8D7ZuajTsSx+kNla34WfAsLtiZ4mW7R3rOfdWJ7ewYxbj2ItHHFb+8+4D/QuMl0+387m\
-Fd+qZdkn9dzCabNFxs3nP43W908m6trfhe4H3UcHr6WoTaLhFs7ErWCfVAPFn1thN3hCImm+n3Go\
-EpzznzwhBUrBOabp5jNfmjdSOiilGMbK/t+c6Ac+zt02JOF4D4/fnbv1QkzZ50WUtByK8xC//Fhd\
-WBA4UMCZfO3TEEGBbMyrr2hbp6jsMq3ZQ5qr/o5FitViYNg23ocZ9dW3d3GjJm6v9mm653VGhGEx\
-DI4er5Etym2dIo//B+VVV70=\
+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\
 ")))
 
 def _(s):
@@ -129,19 +129,25 @@ if not(osflag):
     
 try: import wx
 except:
-    msg=_("Please install")+" wxPython 2.8 "+_("or higher")+\
-        " (http://www.wxpython.org/)!\n"+\
-        _("Under Debian or Ubuntu you may try")+\
-        ": sudo aptitude install python-wxgtk2.8"
+    msg=_("Please install")+" wxPython 2.8 ("+_("or higher")+\
+        ") (http://www.wxpython.org/)!\n"+\
+        _("Under Debian or Ubuntu you may try")+":\n"\
+        "sudo aptitude install python-wxgtk2.8\n"+_("or")+"\n"+\
+        "sudo aptitude install python-wxgtk3.0"
     errmsg(msg)
     raise RuntimeError(msg)
 
-try: import Image
+try:
+    from PIL import Image
+    from PIL.Image import core as _imaging
 except:
-    msg=_("Please install")+" Python Imaging Library (PIL) 1.1.7 "+\
-        _("or higher")+" \n(http://www.pythonware.com/products/pil/)!\n"+\
-        _("Under Debian or Ubuntu you may try")+\
-        ": sudo aptitude install python-imaging"
+    msg=_("Please install")+" Python Imaging Library (PIL) 1.1.7 ("+\
+        _("or higher")+") (http://www.pythonware.com/products/pil/)\n"+\
+        _("or")+" Pillow 3.2.0 ("+_("or higher")+\
+        ") (https://pillow.readthedocs.org/en/3.2.x/)!\n"+\
+        _("Under Debian or Ubuntu you may try")+":\n"\
+        "sudo aptitude install python-imaging\n"+_("or")+"\n"+\
+        "sudo aptitude install python-pil"
     errmsg(msg)
     raise RuntimeError(msg)
 
@@ -262,7 +268,7 @@ class DFrame(wx.Frame):
                         else: mode='RGB'
                         x,=unpack("i",imbuffer[1:5])
                         y,=unpack("i",imbuffer[5:9])
-                        try: self.img=Image.fromstring(mode,(x,y),imbuffer[9:])
+                        try: self.img=Image.frombytes(mode,(x,y),imbuffer[9:])
                         except: err=1
                         del imbuffer
                     else: err=1
@@ -294,9 +300,9 @@ class DFrame(wx.Frame):
 
     def bitmapfrompil(self,img):
         if img.mode[-1]=='A': return wx.BitmapFromBufferRGBA(img.size[0],\
-                img.size[1],img.convert("RGBA").tostring())
+                img.size[1],img.convert("RGBA").tobytes())
         else: return wx.BitmapFromBuffer(img.size[0],img.size[1],\
-                img.convert("RGB").tostring())
+                img.convert("RGB").tobytes())
 
     def scalebitmap(self,width,height):
         if self.img:
@@ -493,15 +499,15 @@ class DFrame(wx.Frame):
     def rotate(self,dir):
         if self.img:
             self.stitle(_('Rotating...'))
-            if dir: self.img=self.img.rotate(-90)
-            else: self.img=self.img.rotate(90)
+            if dir: self.img=self.img.rotate(-90,expand=1)
+            else: self.img=self.img.rotate(90,expand=1)
             if self.img:
                 if self.scale!=100.0:
                     x=self.img.size[0]*(self.scale/100.0)
                     y=self.img.size[1]*(self.scale/100.0)
                     self.showbitmap(self.scalebitmap(x,y))
                 else: self.showbitmap(wx.BitmapFromBuffer(self.img.size[0],\
-                        self.img.size[1],self.img.convert("RGB").tostring()))
+                        self.img.size[1],self.img.convert("RGB").tobytes()))
             if len(self.imginfo): self.stitle(self.filelist[self.index]+\
                 ' ('+self.imginfo+')')
 
@@ -689,7 +695,7 @@ class DFrame(wx.Frame):
                     y=self.img.size[1]*(self.scale/100.0)
                     self.showbitmap(self.scalebitmap(x,y))
                 else: self.showbitmap(wx.BitmapFromBuffer(self.img.size[0],\
-                        self.img.size[1],self.img.convert("RGB").tostring()))
+                        self.img.size[1],self.img.convert("RGB").tobytes()))
                 if len(self.imginfo): self.stitle(self.filelist[self.index]+\
                     ' ('+self.imginfo+')')
                 else: self.deftitle()
@@ -704,7 +710,7 @@ class DFrame(wx.Frame):
                     y=self.img.size[1]*(self.scale/100.0)
                     self.showbitmap(self.scalebitmap(x,y))
                 else: self.showbitmap(wx.BitmapFromBuffer(self.img.size[0],\
-                        self.img.size[1],self.img.convert("RGB").tostring()))
+                        self.img.size[1],self.img.convert("RGB").tobytes()))
                 if len(self.imginfo): self.stitle(self.filelist[self.index]+\
                     ' ('+self.imginfo+')')
                 else: self.deftitle()
