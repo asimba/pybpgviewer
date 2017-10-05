@@ -51,9 +51,9 @@ Ctrl-C | save a copy of the opened file
 Ctrl-R | rotate 90 degrees clockwise  
 Ctrl-L | rotate 90 degrees counterclockwise  
 Ctrl-F | toggle full screen mode  
-+ | zoom in (up to 100%)  
-- | zoom out (down to the smallest available size)  
-* | zoom out to fit window area
+\+ | zoom in (up to 100%)  
+\- | zoom out (down to the smallest available size)  
+\* | zoom out to fit window area
 Left,Up,Right,Down | move over the scaled image  
 PgUp,Backspace,A,S | view previous file  
 PgDown,Return,D,W | view next file  
