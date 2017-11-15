@@ -58,3 +58,6 @@ Left,Up,Right,Down | move over the scaled image
 PgUp,Backspace,A,S | view previous file  
 PgDown,Return,D,W | view next file  
 Delete | delete current file  
+
+---
+_**If you wish, you may donate some BTC to:**_ 1NLW4Si8E4pSetVfAUEWMUAeC16rYnqFbd
