@@ -206,6 +206,28 @@ def bpggetcmd():
         exit()
     return bpgpath
 
+class GenBitmap(wx.Panel):
+    def __init__(self,parent,ID,bitmap,pos=wx.DefaultPosition,
+            size=wx.DefaultSize,style=0):
+        if not style & wx.BORDER_MASK: style=style|wx.BORDER_NONE
+        wx.Panel.__init__(self,parent,ID,pos,size,style)
+        self._bitmap=bitmap
+        self.SetInitialSize(size)
+        self.Bind(wx.EVT_ERASE_BACKGROUND,lambda e: None)
+        self.Bind(wx.EVT_PAINT,self.OnPaint)
+
+    def SetBitmap(self,bitmap):
+        self._bitmap=bitmap
+        self.SetInitialSize((bitmap.GetWidth(),bitmap.GetHeight()))
+        self.Refresh()
+
+    def GetBitmap(self): return self._bitmap
+
+    def OnPaint(self, event):
+        dc=wx.PaintDC(self)
+        if self._bitmap:
+            dc.DrawBitmap(self._bitmap,0,0,True)
+
 class DFrame(wx.Frame):
     def bpgdecode(self,filename):
         msg=None
@@ -412,6 +434,7 @@ class DFrame(wx.Frame):
         self.img=None
         self.imginfo=''
         self.fifo=''
+        self.mpos=None
         t,self.fifo=mkstemp(suffix='.rgb',prefix='')
         close(t)
         remove(self.fifo)
@@ -424,12 +447,14 @@ class DFrame(wx.Frame):
                 exit()
         self.filelist=[]
         self.index=0
+        self.SetDoubleBuffered(True)
         self.SetInitialSize(size=(400,300))
         self.panel=wx.ScrolledWindow(self,-1,style=wx.WANTS_CHARS)
         self.psizer=wx.FlexGridSizer(1,1,0,0)
         self.psizer.AddGrowableCol(0)
         self.psizer.AddGrowableRow(0)
-        self.bitmap=wx.StaticBitmap(self.panel,bitmap=self.emptybitmap())
+        self.bitmap=GenBitmap(self.panel,-1,style=wx.WANTS_CHARS,
+            bitmap=self.emptybitmap())
         self.psizer.Add(self.bitmap,1,wx.ALIGN_CENTER,0)
         self.panel.SetSizer(self.psizer)
         self.sizer=wx.FlexGridSizer(1,1,0,0)
@@ -438,13 +463,13 @@ class DFrame(wx.Frame):
         self.sizer.Add(self.panel,1,wx.ALIGN_CENTER,0)
         self.SetSizer(self.sizer)
         self.showimage(title)
-        self.panel.Bind(wx.EVT_KEY_DOWN,self.keydown)
-        self.panel.Bind(wx.EVT_CHAR,self.keychar)
-        self.panel.Bind(wx.EVT_MOTION,self.drag)
-        self.panel.Bind(wx.EVT_MOUSE_EVENTS,self.drag)
+        self.bitmap.Bind(wx.EVT_KEY_DOWN,self.keydown)
+        self.bitmap.Bind(wx.EVT_CHAR,self.keychar)
+        self.bitmap.Bind(wx.EVT_TEXT_ENTER,self.keychar)
         self.bitmap.Bind(wx.EVT_MOTION,self.drag)
         self.bitmap.Bind(wx.EVT_MOUSE_EVENTS,self.drag)
         self.Bind(wx.EVT_SIZE,self.fresize)
+        self.Bind(wx.EVT_ERASE_BACKGROUND,lambda e: None)
         if osflag: self._icon=bpglogo.GetIcon()
         else:
             tmp_icon=bpglogo.GetImage()
@@ -481,20 +506,21 @@ class DFrame(wx.Frame):
             if event.Dragging():
                 pos=event.GetPosition()
                 if self.mpos!=None:
+                    px,py=self.panel.GetScrollPixelsPerUnit()
                     dx=self.mpos[0]-pos[0]
                     dy=self.mpos[1]-pos[1]
                     self.panel.Scroll(self.panel.GetScrollPos(wx.HORIZONTAL)+\
-                        dx,self.panel.GetScrollPos(wx.VERTICAL)+dy)
+                        dx/px,self.panel.GetScrollPos(wx.VERTICAL)+dy/py)
                 return
             if event.LeftDown():
                 self.mpos=event.GetPosition()
-                event.Skip()
+                return
             if event.LeftUp():
                 self.mpos=None
-                event.Skip()
+                return
         if event.ButtonDClick():
+            self.mpos=None
             self.maximize()
-            return
 
     def rotate(self,dir):
         if self.img:
