@@ -466,6 +466,7 @@ class DFrame(wx.Frame):
         self.bitmap.Bind(wx.EVT_KEY_DOWN,self.keydown)
         self.bitmap.Bind(wx.EVT_CHAR,self.keychar)
         self.bitmap.Bind(wx.EVT_TEXT_ENTER,self.keychar)
+        self.panel.Bind(wx.EVT_MOUSE_EVENTS,self.drag)
         self.bitmap.Bind(wx.EVT_MOTION,self.drag)
         self.bitmap.Bind(wx.EVT_MOUSE_EVENTS,self.drag)
         self.Bind(wx.EVT_SIZE,self.fresize)
