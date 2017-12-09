@@ -19,13 +19,15 @@ _Dependencies of the source script (viewer only):_
 
 ---
 _Notes:_  
-* large images will be scaled to fit screen area  
-* embedded translations: Russian,English  
-* thumbnails preview in Nautilus/Thunar (Ubuntu 12.04/Xubuntu 12.04/Ubuntu 14.04/Xubuntu 14.04/Ubuntu 16.04/Xubuntu 16.04/Ubuntu 17.10/Xubuntu 17.10 only)  
-* thumbnails preview in Dolphin (KDE 4) (Kubuntu 14.04) (don't forget to turn on BPG preview in Dolphin settings after package installation)  
-* thumbnails preview in Windows Explorer (for Windows Vista or higher)  
+- large images will be scaled to fit screen area  
+- in Ubuntu 17.10 environment you can try [x86 package](https://github.com/asimba/pybpgviewer/releases/download/v1.22/bpgviewer-1.22-ubuntu-17.10-i386.deb) / [x86-64 package](https://github.com/asimba/pybpgviewer/releases/download/v1.22/bpgviewer-1.22-ubuntu-17.10-amd64.deb).  
+- in MS Windows (Windows 7/Windows 8.1/Windows 10 32/64) environment you can use [statically linked x86 package](https://github.com/asimba/pybpgviewer/releases/download/v1.22/bpgviewer-1.22-win32-portable.7z) / [statically linked x64 package](https://github.com/asimba/pybpgviewer/releases/download/v1.22/bpgviewer-1.22-win64-portable.7z) portable version or try the [x86 installer](https://github.com/asimba/pybpgviewer/releases/download/v1.22/bpgviewer-1.22-win32-setup.exe) / [x64 installer](https://github.com/asimba/pybpgviewer/releases/download/v1.22/bpgviewer-1.22-win64-setup.exe).  
+- embedded translations: Russian,English  
+- thumbnails preview in Nautilus/Thunar (tested Ubuntu/Xubuntu 17.10/17.10 only)  
+- thumbnails preview in Dolphin (KDE 5) (tested Kubuntu 17.10) (don't forget to turn on BPG preview in Dolphin settings after package installation)  
+- thumbnails preview in Windows Explorer (for Windows Vista or higher)  
 
-_Ubuntu/Xubuntu 16.04/17.10 Notes:_  
+_Ubuntu/Xubuntu 17.10 Notes:_  
 * You may need to run "sudo apt-get -f install" after package installation.  
 
 _Linux Mint "Rafaela" (Mate) Notes:_  
@@ -33,15 +35,6 @@ _Linux Mint "Rafaela" (Mate) Notes:_
 * To enable image thumbnail preview in Dolphin:  
   a) install following packages: kfind, baloo, kdebase-apps, kde-runtime  
   b) in Dolphin go to Control->General->Previews and enable "BPG image files" then press "Ok"  
-
----
-_Usage:_ python bpgviewer.py input.bpg (Or just run 'python bpgviewer.py' and then use 'Ctrl-O' to open BPG image file). 
-
----  
-In Ubuntu environment you can try [debian package for x86](https://github.com/asimba/pybpgviewer/releases/download/v1.21/bpgviewer_1.21-ubuntu_i386.deb) or [debian package for x86-64](https://github.com/asimba/pybpgviewer/releases/download/v1.21/bpgviewer_1.21-ubuntu_amd64.deb) (prebuilt plugins for the file browsers are included) (or for Ubuntu 16.04 / Ubuntu 17.10: [x86](https://github.com/asimba/pybpgviewer/releases/download/v1.21/bpgviewer_1.21-ubuntu16.04_i386.deb) / [x86-64](https://github.com/asimba/pybpgviewer/releases/download/v1.21/bpgviewer_1.21-ubuntu16.04_amd64.deb)).  
-
----  
-In MS Windows (Windows XP/Windows 7/Windows 8.1/Windows 10 32/64) environment you can use [statically linked](https://github.com/asimba/pybpgviewer/releases/download/v1.21/bpgviewer-1.21-win32-portable.7z) (by [cx_Freeze](http://cx-freeze.sourceforge.net/)) portable version or try the [installer](https://github.com/asimba/pybpgviewer/releases/download/v1.21/bpgviewer-1.21-setup.zip).  
 
 ---
 _Hot keys:_  
