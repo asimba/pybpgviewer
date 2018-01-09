@@ -213,7 +213,6 @@ class GenBitmap(wx.Panel):
         wx.Panel.__init__(self,parent,ID,pos,size,style)
         self._bitmap=bitmap
         self.SetInitialSize(size)
-        self.Bind(wx.EVT_ERASE_BACKGROUND,lambda e: None)
         self.Bind(wx.EVT_PAINT,self.OnPaint)
 
     def SetBitmap(self,bitmap):
