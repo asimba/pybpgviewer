@@ -533,8 +533,13 @@ class DFrame(wx.Frame):
                     x=self.img.size[0]*(self.scale/100.0)
                     y=self.img.size[1]*(self.scale/100.0)
                     self.showbitmap(self.scalebitmap(x,y))
-                else: self.showbitmap(wx.BitmapFromBuffer(self.img.size[0],\
-                        self.img.size[1],self.img.convert("RGB").tobytes()))
+                else:
+                    if self.img.mode[-1]=='A':
+                        self.showbitmap(wx.BitmapFromBufferRGBA(self.img.size[0],\
+                            self.img.size[1],self.img.convert("RGBA").tobytes()))
+                    else:
+                        self.showbitmap(wx.BitmapFromBuffer(self.img.size[0],\
+                            self.img.size[1],self.img.convert("RGB").tobytes()))
             if len(self.imginfo): self.stitle(self.filelist[self.index]+\
                 ' ('+self.imginfo+')')
 
