@@ -3,7 +3,7 @@
 '''
 Simple BPG Image viewer.
 
-Copyright (c) 2014-2016, Alexey Simbarsky
+Copyright (c) 2014-2018, Alexey Simbarsky
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -212,7 +212,9 @@ class GenBitmap(wx.Panel):
         if not style & wx.BORDER_MASK: style=style|wx.BORDER_NONE
         wx.Panel.__init__(self,parent,ID,pos,size,style)
         self._bitmap=bitmap
+        self._clear=False
         self.SetInitialSize(size)
+        self.Bind(wx.EVT_ERASE_BACKGROUND,lambda e: None)
         self.Bind(wx.EVT_PAINT,self.OnPaint)
 
     def SetBitmap(self,bitmap):
@@ -224,8 +226,10 @@ class GenBitmap(wx.Panel):
 
     def OnPaint(self, event):
         dc=wx.PaintDC(self)
+        if self._clear: dc.Clear()
         if self._bitmap:
             dc.DrawBitmap(self._bitmap,0,0,True)
+        self._clear=False
 
 class DFrame(wx.Frame):
     def bpgdecode(self,filename):
@@ -332,6 +336,7 @@ class DFrame(wx.Frame):
         else: return None
 
     def showbitmap(self,bitmap):
+        self.bitmap._clear=True
         if bitmap==None: self.showempty()
         else:
             self.bitmap.SetBitmap(bitmap)
@@ -725,8 +730,13 @@ class DFrame(wx.Frame):
                     x=self.img.size[0]*(self.scale/100.0)
                     y=self.img.size[1]*(self.scale/100.0)
                     self.showbitmap(self.scalebitmap(x,y))
-                else: self.showbitmap(wx.BitmapFromBuffer(self.img.size[0],\
-                        self.img.size[1],self.img.convert("RGB").tobytes()))
+                else:
+                    if self.img.mode[-1]=='A':
+                        self.showbitmap(wx.BitmapFromBufferRGBA(self.img.size[0],\
+                            self.img.size[1],self.img.convert("RGBA").tobytes()))
+                    else:
+                        self.showbitmap(wx.BitmapFromBuffer(self.img.size[0],\
+                            self.img.size[1],self.img.convert("RGB").tobytes()))
                 if len(self.imginfo): self.stitle(self.filelist[self.index]+\
                     ' ('+self.imginfo+')')
                 else: self.deftitle()
@@ -740,8 +750,13 @@ class DFrame(wx.Frame):
                     x=self.img.size[0]*(self.scale/100.0)
                     y=self.img.size[1]*(self.scale/100.0)
                     self.showbitmap(self.scalebitmap(x,y))
-                else: self.showbitmap(wx.BitmapFromBuffer(self.img.size[0],\
-                        self.img.size[1],self.img.convert("RGB").tobytes()))
+                else:
+                    if self.img.mode[-1]=='A':
+                        self.showbitmap(wx.BitmapFromBufferRGBA(self.img.size[0],\
+                            self.img.size[1],self.img.convert("RGBA").tobytes()))
+                    else:
+                        self.showbitmap(wx.BitmapFromBuffer(self.img.size[0],\
+                            self.img.size[1],self.img.convert("RGB").tobytes()))
                 if len(self.imginfo): self.stitle(self.filelist[self.index]+\
                     ' ('+self.imginfo+')')
                 else: self.deftitle()
