@@ -27,7 +27,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from sys import argv,exit
 from os import listdir,access,R_OK,stat,close,remove
-from os.path import exists,isfile,dirname,basename,realpath,join
+from os.path import exists,isfile,dirname,basename,realpath,join,abspath
 from tempfile import mkstemp
 from shutil import copyfile
 from subprocess import Popen,PIPE,STDOUT
