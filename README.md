@@ -20,8 +20,9 @@ _Dependencies of the source script (viewer only):_
 ---
 _Notes:_  
 - large images will be scaled to fit screen area  
-- in Ubuntu 17.10 environment you can try [x86 package](https://github.com/asimba/pybpgviewer/releases/download/v1.22/bpgviewer-1.22-ubuntu-17.10-i386.deb) / [x86-64 package](https://github.com/asimba/pybpgviewer/releases/download/v1.22/bpgviewer-1.22-ubuntu-17.10-amd64.deb).  
-- in MS Windows (Windows 7/Windows 8.1/Windows 10 32/64) environment you can use [statically linked x86 package](https://github.com/asimba/pybpgviewer/releases/download/v1.22/bpgviewer-1.22-win32-portable.7z) / [statically linked x64 package](https://github.com/asimba/pybpgviewer/releases/download/v1.22/bpgviewer-1.22-win64-portable.7z) portable version or try the [x86 installer](https://github.com/asimba/pybpgviewer/releases/download/v1.22/bpgviewer-1.22-win32-setup.exe) / [x64 installer](https://github.com/asimba/pybpgviewer/releases/download/v1.22/bpgviewer-1.22-win64-setup.exe).  
+- in Ubuntu 17.10 environment you can try [x86 package](https://github.com/asimba/pybpgviewer/releases/download/v1.23/bpgviewer-1.23-ubuntu-17.10-i386.deb) / [x86-64 package](https://github.com/asimba/pybpgviewer/releases/download/v1.23/bpgviewer-1.23-ubuntu-17.10-amd64.deb).  
+- in MS Windows (Windows 7/Windows 8.1/Windows 10 32/64) environment you can use [statically linked x86 package](https://github.com/asimba/pybpgviewer/releases/download/v1.23/bpgviewer-1.23-win32-portable.7z) / [statically linked x64 package](https://github.com/asimba/pybpgviewer/releases/download/v1.23/bpgviewer-1.23-win64-portable.7z) portable version or try the [x86 installer](https://github.com/asimba/pybpgviewer/releases/download/v1.23/bpgviewer-1.23-win32-setup.exe) / [x64 installer](https://github.com/asimba/pybpgviewer/releases/download/v1.23/bpgviewer-1.23-win64-setup.exe).  
+- in macOS 10.13 environment you can try [x86-64 package](https://github.com/asimba/pybpgviewer/releases/download/v1.23/bpgviewer-1.23-macos-10.13.dmg).  
 - embedded translations: Russian,English  
 - thumbnails preview in Nautilus/Thunar (tested Ubuntu/Xubuntu 17.10/17.10 only)  
 - thumbnails preview in Dolphin (KDE 5) (tested Kubuntu 17.10) (don't forget to turn on BPG preview in Dolphin settings after package installation)  
