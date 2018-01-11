@@ -38,7 +38,7 @@ _Linux Mint "Rafaela" (Mate) Notes:_
   b) in Dolphin go to Control->General->Previews and enable "BPG image files" then press "Ok"  
 
 ---
-_Hot keys:_  
+_Hot keys (use 'Cmd' key instead of 'Ctrl' in macOS):_  
 
 Key  | Action
 ----- | ------  
