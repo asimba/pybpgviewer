@@ -344,14 +344,14 @@ class DFrame(wx.Frame):
 
     def bitmapfrompil(self,img):
         if img.mode[-1]=='A':
-            if wx.VERSION[0]==3:
+            if wx.VERSION[0]<4:
                 return wx.BitmapFromBufferRGBA(img.size[0],\
                     img.size[1],img.convert("RGBA").tobytes())
             else:
                 return wx.Bitmap.FromBufferRGBA(img.size[0],\
                     img.size[1],img.convert("RGBA").tobytes())
         else:
-            if wx.VERSION[0]==3:
+            if wx.VERSION[0]<4:
                 return wx.BitmapFromBuffer(img.size[0],img.size[1],\
                     img.convert("RGB").tobytes())
             else:
@@ -370,7 +370,7 @@ class DFrame(wx.Frame):
         else:
             self.bitmap.SetBitmap(bitmap)
             self.imginfo='%.2f'%self.scale+'%@'+self.bitmap_text
-            if wx.VERSION[0]==3: self.bitmap.SetToolTipString(self.imginfo)
+            if wx.VERSION[0]<4: self.bitmap.SetToolTipString(self.imginfo)
             else: self.bitmap.SetToolTip(self.imginfo)
             x,y=bitmap.GetSize()
             self.panel.SetVirtualSize((x,y))
@@ -387,7 +387,7 @@ class DFrame(wx.Frame):
             else: self.Layout()
 
     def emptybitmap(self):
-        if wx.VERSION[0]==3: buffer=wx.EmptyBitmap(400,300)
+        if wx.VERSION[0]<4: buffer=wx.EmptyBitmap(400,300)
         else: buffer=wx.Bitmap(400,300)
         dc=wx.BufferedDC(None,buffer)
         dc.SetBackground(wx.Brush(self.panel.GetBackgroundColour()))
@@ -512,7 +512,7 @@ class DFrame(wx.Frame):
         else:
             tmp_icon=bpglogo.GetImage()
             tmp_icon.Rescale(32,32,wx.IMAGE_QUALITY_HIGH)
-            if wx.VERSION[0]==3:
+            if wx.VERSION[0]<4:
                 self._icon=wx.EmptyIcon()
                 self._icon.CopyFromBitmap(wx.BitmapFromImage(tmp_icon))
             else:
@@ -678,7 +678,7 @@ class DFrame(wx.Frame):
         event.Skip()
 
     def keychar(self,event):
-        if wx.VERSION[0]==3: keycode=event.GetUniChar()
+        if wx.VERSION[0]<4: keycode=event.GetUniChar()
         else: keycode=event.GetKeyCode()
         try: co_code=wx.WXK_CONTROL_O
         except: co_code=15
