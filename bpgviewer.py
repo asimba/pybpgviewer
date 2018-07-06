@@ -25,14 +25,13 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 '''
 
-from sys import argv,exit
+from sys import argv,exit,version_info
 from os import listdir,access,R_OK,stat,close,remove
 from os.path import exists,isfile,dirname,basename,realpath,join,abspath
 from tempfile import mkstemp
 from shutil import copyfile
 from subprocess import Popen,PIPE,STDOUT
 from math import floor
-import StringIO
 from struct import unpack
 from platform import system
 import locale,pickle,base64,zlib
@@ -56,14 +55,26 @@ class translator():
         self.locale=locale.getdefaultlocale()
 
     def find(self,key):
-        if self.voc.has_key(key):
-            if self.voc[key].has_key(self.locale[0]):
-                return self.voc[key][self.locale[0]].encode(self.locale[1])
+        try: wxu=True if wx.VERSION[0]>3 else False
+        except: wxu=False
+        if key in self.voc:
+            if self.locale[0] in self.voc[key]:
+                if wxu: return self.voc[key][self.locale[0]]
+                else:
+                    return self.voc[key][self.locale[0]].encode(\
+                        self.locale[1])
         return key
 
 t=translator()
 
-t.voc=pickle.loads(zlib.decompress(base64.decodestring("\
+def load_voc(str):
+    if version_info[0]>2:
+        return pickle.loads(zlib.decompress(base64.decodestring(\
+            bytes(str,'utf-8'))))
+    else:
+        return pickle.loads(zlib.decompress(base64.decodestring(str)))
+
+t.voc=load_voc("\
 eNrFWW1vnEYQ/n6/Yv2hipOcXRaWN39r4jipZNWWXbdSFaniYO+MguEEnF3n13d3ZoEBjssldhIp\
 QRa3L/P6zDPDYbK2Ztcv/imKuzRfsWJTHx8fv5it+ewwWdvql3Lz79WNeuHM/vq4sYTt6KcTw9OF\
 Z6KfAt6IYPjeMW/UqbO1mFXV9YubPFpkktUFS2Qma3miTnf1dd5sZW7hCTnHhqeEp09uxzceuUsy\
@@ -97,10 +108,15 @@ xbdqWfZJPbdw2myRcfP5T6P1/ZOJuvZ3oftB99HBaylqAzTcwpm4FewDNVD8uRV2gyckkub7GYcq\
 wTn/yRNSoBScI0w3n/nSvJHSQSnFMFf2/+ZEP/Bx7rYpCcd7ePxu7NYLEbLPiyhpORTnIX75sbq0\
 IOFAA87gtU9TBAWyufnyoQ+0bTzQmfjooZcgpryibaCivsu0Zg9prvpBFikWjIlku3gcAs2rb+/6\
 Rk3fXu3WdI/sjAjGYphMPR4k26ywNbgd/w9PC2QC\
-")))
+")
 
 def _(s):
     return t.find(s)
+
+def __(s,codepage):
+    if version_info[0]<3:
+        if type(s) is unicode: s=s.encode(codepage)
+    return s
 
 def errmsg(msg):
     if osflag:
@@ -201,7 +217,7 @@ def bpggetcmd():
     bpgpath=join(dirname(realpath(argv[0])),binname)
     if not(isfile(bpgpath)):
         msg=_('BPG decoder not found!\n')
-        print msg
+        print(msg)
         errmsgbox(msg)
         exit()
     return bpgpath
@@ -278,6 +294,8 @@ class DFrame(wx.Frame):
                             stderr=None,bufsize=0,startupinfo=si)
                         win32pipe.ConnectNamedPipe(tpipe,None)
                         imbuffer=''
+                        if version_info[0]<3: imbuffer=''
+                        else: imbuffer=b''
                         if tpipe:
                             while True:
                                 data=None
@@ -289,7 +307,8 @@ class DFrame(wx.Frame):
                         win32pipe.DisconnectNamedPipe(tpipe)
                         f.wait()
                     if len(imbuffer):
-                        if imbuffer[0]=='a': mode='RGBA'
+                        if imbuffer[0]==('a' if version_info[0]<3 else 97):
+                           mode='RGBA'
                         else: mode='RGB'
                         x,=unpack("i",imbuffer[1:5])
                         y,=unpack("i",imbuffer[5:9])
@@ -301,7 +320,7 @@ class DFrame(wx.Frame):
                 if err: msg=_('BPG decoding error!\n')
         else: msg=_('File')+' \"%s\" '%filename+_('is not a BPG-File!')
         if msg:
-            print msg
+            print(msg)
             errmsgbox(msg)
             if self.img:
                 del self.img
@@ -324,10 +343,20 @@ class DFrame(wx.Frame):
         return cr[2]-cr[0]-cw[0]+cc[0],cr[3]-cr[1]-cw[1]+cc[1]
 
     def bitmapfrompil(self,img):
-        if img.mode[-1]=='A': return wx.BitmapFromBufferRGBA(img.size[0],\
-                img.size[1],img.convert("RGBA").tobytes())
-        else: return wx.BitmapFromBuffer(img.size[0],img.size[1],\
-                img.convert("RGB").tobytes())
+        if img.mode[-1]=='A':
+            if wx.VERSION[0]==3:
+                return wx.BitmapFromBufferRGBA(img.size[0],\
+                    img.size[1],img.convert("RGBA").tobytes())
+            else:
+                return wx.Bitmap.FromBufferRGBA(img.size[0],\
+                    img.size[1],img.convert("RGBA").tobytes())
+        else:
+            if wx.VERSION[0]==3:
+                return wx.BitmapFromBuffer(img.size[0],img.size[1],\
+                    img.convert("RGB").tobytes())
+            else:
+                return wx.Bitmap.FromBuffer(img.size[0],img.size[1],\
+                    img.convert("RGB").tobytes())
 
     def scalebitmap(self,width,height):
         if self.img:
@@ -341,7 +370,8 @@ class DFrame(wx.Frame):
         else:
             self.bitmap.SetBitmap(bitmap)
             self.imginfo='%.2f'%self.scale+'%@'+self.bitmap_text
-            self.bitmap.SetToolTipString(self.imginfo)
+            if wx.VERSION[0]==3: self.bitmap.SetToolTipString(self.imginfo)
+            else: self.bitmap.SetToolTip(self.imginfo)
             x,y=bitmap.GetSize()
             self.panel.SetVirtualSize((x,y))
             self.panel.SetScrollbars(1,1,x,y)
@@ -357,7 +387,8 @@ class DFrame(wx.Frame):
             else: self.Layout()
 
     def emptybitmap(self):
-        buffer=wx.EmptyBitmap(400,300)
+        if wx.VERSION[0]==3: buffer=wx.EmptyBitmap(400,300)
+        else: buffer=wx.Bitmap(400,300)
         dc=wx.BufferedDC(None,buffer)
         dc.SetBackground(wx.Brush(self.panel.GetBackgroundColour()))
         dc.Clear()
@@ -391,11 +422,14 @@ class DFrame(wx.Frame):
                 self.scale=d*100.0
                 self.autoscale=self.scale
                 return self.scalebitmap(x,y)
-            else: return self.bitmapfrompil(self.img)
+            else:
+                self.scale=100.0
+                self.autoscale=self.scale
+                return self.bitmapfrompil(self.img)
         return None
 
     def showimage(self,filename):
-        if type(filename) is unicode: filename=filename.encode(self.codepage)
+        filename=__(filename,self.codepage)
         if len(filename) and self.bpgdecode(filename):
             if len(self.filelist)==0:
                 self.filelist=self.getfilelist(dirname(realpath(filename)))
@@ -416,8 +450,7 @@ class DFrame(wx.Frame):
             try:
                 if access(fname,R_OK) and isfile(fname) and\
                     fname[-4:].lower()=='.bpg':
-                    if type(fname) is unicode:
-                        fname=fname.encode(self.codepage)
+                    fname=__(fname,self.codepage)
                     filelist.append(fname)
             except: pass
         return filelist
@@ -443,10 +476,10 @@ class DFrame(wx.Frame):
         close(t)
         remove(self.fifo)
         if osflag:
-            try: mkfifo(self.fifo,0700)
+            try: mkfifo(self.fifo,0x0700)
             except:
                 msg=_('Unable to create FIFO file!')
-                print msg
+                print(msg)
                 errmsgbox(msg)
                 exit()
         self.filelist=[]
@@ -470,8 +503,8 @@ class DFrame(wx.Frame):
         self.bitmap.Bind(wx.EVT_KEY_DOWN,self.keydown)
         self.bitmap.Bind(wx.EVT_CHAR,self.keychar)
         self.bitmap.Bind(wx.EVT_TEXT_ENTER,self.keychar)
-        self.panel.Bind(wx.EVT_MOUSE_EVENTS,self.drag)
         self.bitmap.Bind(wx.EVT_MOTION,self.drag)
+        self.panel.Bind(wx.EVT_MOUSE_EVENTS,self.drag)
         self.bitmap.Bind(wx.EVT_MOUSE_EVENTS,self.drag)
         self.Bind(wx.EVT_SIZE,self.fresize)
         self.Bind(wx.EVT_ERASE_BACKGROUND,lambda e: None)
@@ -479,8 +512,12 @@ class DFrame(wx.Frame):
         else:
             tmp_icon=bpglogo.GetImage()
             tmp_icon.Rescale(32,32,wx.IMAGE_QUALITY_HIGH)
-            self._icon=wx.EmptyIcon()
-            self._icon.CopyFromBitmap(wx.BitmapFromImage(tmp_icon))
+            if wx.VERSION[0]==3:
+                self._icon=wx.EmptyIcon()
+                self._icon.CopyFromBitmap(wx.BitmapFromImage(tmp_icon))
+            else:
+                self._icon=wx.Icon()
+                self._icon.CopyFromBitmap(wx.Bitmap(tmp_icon))
         try: self.SetIcon(self._icon)
         except: pass
         self.Layout()
@@ -529,6 +566,7 @@ class DFrame(wx.Frame):
 
     def rotate(self,dir):
         if self.img:
+            self.bitmap._clear=True
             self.stitle(_('Rotating...'))
             if dir: self.img=self.img.rotate(-90,expand=1)
             else: self.img=self.img.rotate(90,expand=1)
@@ -537,13 +575,7 @@ class DFrame(wx.Frame):
                     x=self.img.size[0]*(self.scale/100.0)
                     y=self.img.size[1]*(self.scale/100.0)
                     self.showbitmap(self.scalebitmap(x,y))
-                else:
-                    if self.img.mode[-1]=='A':
-                        self.showbitmap(wx.BitmapFromBufferRGBA(self.img.size[0],\
-                            self.img.size[1],self.img.convert("RGBA").tobytes()))
-                    else:
-                        self.showbitmap(wx.BitmapFromBuffer(self.img.size[0],\
-                            self.img.size[1],self.img.convert("RGB").tobytes()))
+                else: self.showbitmap(self.bitmapfrompil(self.img))
             if len(self.imginfo): self.stitle(self.filelist[self.index]+\
                 ' ('+self.imginfo+')')
 
@@ -646,7 +678,8 @@ class DFrame(wx.Frame):
         event.Skip()
 
     def keychar(self,event):
-        keycode=event.GetUniChar()
+        if wx.VERSION[0]==3: keycode=event.GetUniChar()
+        else: keycode=event.GetKeyCode()
         try: co_code=wx.WXK_CONTROL_O
         except: co_code=15
         try: cs_code=wx.WXK_CONTROL_S
@@ -695,7 +728,7 @@ class DFrame(wx.Frame):
             if status==wx.ID_CANCEL: return
             if status==wx.ID_OK:
                 dst=saveFileDialog.GetPath()
-                if type(dst) is unicode: dst=dst.encode(self.codepage)
+                dst=__(dst,self.codepage)
                 if dst[-4:].lower()!='.png': dst+='.png'
                 ttitle=self.Title
                 self.stitle(_('Saving PNG file...'))
@@ -715,7 +748,7 @@ class DFrame(wx.Frame):
             if status==wx.ID_OK:
                 dst=saveFileDialog.GetPath()
                 try:
-                    if type(dst) is unicode: dst=dst.encode(self.codepage)
+                    dst=__(dst,self.codepage)
                     if exists(dst) and\
                         abspath(self.filelist[self.index])!=dst: remove(dst)
                     copyfile(self.filelist[self.index],dst)
@@ -730,13 +763,7 @@ class DFrame(wx.Frame):
                     x=self.img.size[0]*(self.scale/100.0)
                     y=self.img.size[1]*(self.scale/100.0)
                     self.showbitmap(self.scalebitmap(x,y))
-                else:
-                    if self.img.mode[-1]=='A':
-                        self.showbitmap(wx.BitmapFromBufferRGBA(self.img.size[0],\
-                            self.img.size[1],self.img.convert("RGBA").tobytes()))
-                    else:
-                        self.showbitmap(wx.BitmapFromBuffer(self.img.size[0],\
-                            self.img.size[1],self.img.convert("RGB").tobytes()))
+                else: self.showbitmap(self.bitmapfrompil(self.img))
                 if len(self.imginfo): self.stitle(self.filelist[self.index]+\
                     ' ('+self.imginfo+')')
                 else: self.deftitle()
@@ -750,13 +777,7 @@ class DFrame(wx.Frame):
                     x=self.img.size[0]*(self.scale/100.0)
                     y=self.img.size[1]*(self.scale/100.0)
                     self.showbitmap(self.scalebitmap(x,y))
-                else:
-                    if self.img.mode[-1]=='A':
-                        self.showbitmap(wx.BitmapFromBufferRGBA(self.img.size[0],\
-                            self.img.size[1],self.img.convert("RGBA").tobytes()))
-                    else:
-                        self.showbitmap(wx.BitmapFromBuffer(self.img.size[0],\
-                            self.img.size[1],self.img.convert("RGB").tobytes()))
+                else: self.showbitmap(self.bitmapfrompil(self.img))
                 if len(self.imginfo): self.stitle(self.filelist[self.index]+\
                     ' ('+self.imginfo+')')
                 else: self.deftitle()
