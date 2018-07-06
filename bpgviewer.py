@@ -69,7 +69,7 @@ t=translator()
 
 def load_voc(str):
     if version_info[0]>2:
-        return pickle.loads(zlib.decompress(base64.decodestring(\
+        return pickle.loads(zlib.decompress(base64.decodebytes(\
             bytes(str,'utf-8'))))
     else:
         return pickle.loads(zlib.decompress(base64.decodestring(str)))
