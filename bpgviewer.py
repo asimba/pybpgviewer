@@ -55,21 +55,16 @@ class translator():
         self.locale=locale.getdefaultlocale()
 
     def find(self,key):
-        try: wxu=True if wx.VERSION[0]>3 else False
-        except: wxu=False
         if key in self.voc:
             if self.locale[0] in self.voc[key]:
-                if wxu: return self.voc[key][self.locale[0]]
-                else:
-                    return self.voc[key][self.locale[0]].encode(\
-                        self.locale[1])
+                return self.voc[key][self.locale[0]]
         return key
 
 t=translator()
 
 def load_voc(str):
     if version_info[0]>2:
-        return pickle.loads(zlib.decompress(base64.decodebytes(\
+        return pickle.loads(zlib.decompress(base64.decodestring(\
             bytes(str,'utf-8'))))
     else:
         return pickle.loads(zlib.decompress(base64.decodestring(str)))
@@ -476,7 +471,7 @@ class DFrame(wx.Frame):
         close(t)
         remove(self.fifo)
         if osflag:
-            try: mkfifo(self.fifo,0x0700)
+            try: mkfifo(self.fifo,0o700)
             except:
                 msg=_('Unable to create FIFO file!')
                 print(msg)
@@ -512,12 +507,8 @@ class DFrame(wx.Frame):
         else:
             tmp_icon=bpglogo.GetImage()
             tmp_icon.Rescale(32,32,wx.IMAGE_QUALITY_HIGH)
-            if wx.VERSION[0]<4:
-                self._icon=wx.EmptyIcon()
-                self._icon.CopyFromBitmap(wx.BitmapFromImage(tmp_icon))
-            else:
-                self._icon=wx.Icon()
-                self._icon.CopyFromBitmap(wx.Bitmap(tmp_icon))
+            self._icon=wx.Icon()
+            self._icon.CopyFromBitmap(wx.Bitmap(tmp_icon))
         try: self.SetIcon(self._icon)
         except: pass
         self.Layout()
@@ -678,8 +669,7 @@ class DFrame(wx.Frame):
         event.Skip()
 
     def keychar(self,event):
-        if wx.VERSION[0]<4: keycode=event.GetUniChar()
-        else: keycode=event.GetKeyCode()
+        keycode=event.GetKeyCode()
         try: co_code=wx.WXK_CONTROL_O
         except: co_code=15
         try: cs_code=wx.WXK_CONTROL_S
