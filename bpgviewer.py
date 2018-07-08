@@ -250,6 +250,12 @@ class DecodeThread(Thread):
             self.func()
             self.parent.dlock.release()
 
+SE_EVT_TYPE=wx.NewEventType()
+SE_EVT_BNDR=wx.PyEventBinder(SE_EVT_TYPE,1)
+class ShowEvent(wx.PyCommandEvent):
+    def __init__(self,etype,eid):
+        wx.PyCommandEvent.__init__(self,etype,eid)
+
 class DFrame(wx.Frame):
     def bpgdecode(self,filename):
         msg=None
@@ -431,6 +437,8 @@ class DFrame(wx.Frame):
                     if self.filelist[self.index]==realpath(filename): break
                     else: self.index+=1
                     if self.index>=len(self.filelist): break
+        wx.PostEvent(self,ShowEvent(SE_EVT_TYPE,-1))
+    def _evt_showimage(self,evt):
         self.showbitmap(self.autoscaled())
         if len(self.imginfo): self.stitle(self.filelist[self.index]+\
             ' ('+self.imginfo+')')
@@ -513,6 +521,7 @@ class DFrame(wx.Frame):
             self._icon.CopyFromBitmap(wx.Bitmap(tmp_icon))
         try: self.SetIcon(self._icon)
         except: pass
+        self.Bind(SE_EVT_BNDR,self._evt_showimage)
         self.Layout()
         self.Center()
         self.panel.SetFocus()
@@ -533,6 +542,8 @@ class DFrame(wx.Frame):
             else: self.index=0
             self.loadindex(old)
     def drag(self,event):
+        if not self.dlock.acquire(False): return
+        self.dlock.release()
         if self.img:
             if event.Dragging():
                 pos=event.GetPosition()
@@ -587,6 +598,8 @@ class DFrame(wx.Frame):
                 ' ('+self.imginfo+')')
             else: self.deftitle()
     def maximize(self):
+        if not self.dlock.acquire(False): return
+        self.dlock.release()
         if not(self.IsFullScreen()):
             if self.IsMaximized() or self.max:
                 self.max=False
@@ -595,6 +608,8 @@ class DFrame(wx.Frame):
                 self.max=True
                 self.Maximize()
     def keydown(self,event):
+        if not self.dlock.acquire(False): return
+        self.dlock.release()
         keycode=event.GetKeyCode()
         if keycode==wx.WXK_ESCAPE:
             self.Close()
@@ -661,6 +676,8 @@ class DFrame(wx.Frame):
             return
         event.Skip()
     def keychar(self,event):
+        if not self.dlock.acquire(False): return
+        self.dlock.release()
         keycode=event.GetKeyCode()
         try: co_code=wx.WXK_CONTROL_O
         except: co_code=15
