@@ -34,6 +34,7 @@ from subprocess import Popen,PIPE,STDOUT
 from math import floor
 from struct import unpack
 from platform import system
+from threading import Thread,Lock
 import locale,pickle,base64,zlib
 
 if system()=="Windows":
@@ -227,20 +228,27 @@ class GenBitmap(wx.Panel):
         self.SetInitialSize(size)
         self.Bind(wx.EVT_ERASE_BACKGROUND,lambda e: None)
         self.Bind(wx.EVT_PAINT,self.OnPaint)
-
     def SetBitmap(self,bitmap):
         self._bitmap=bitmap
         self.SetInitialSize((bitmap.GetWidth(),bitmap.GetHeight()))
         self.Refresh()
-
     def GetBitmap(self): return self._bitmap
-
     def OnPaint(self, event):
         dc=wx.PaintDC(self)
         if self._clear: dc.Clear()
         if self._bitmap:
             dc.DrawBitmap(self._bitmap,0,0,True)
         self._clear=False
+
+class DecodeThread(Thread):
+    def __init__(self,parent,func):
+        Thread.__init__(self)
+        self.parent=parent
+        self.func=func
+    def run(self):
+        if self.parent.dlock.acquire(False):
+            self.func()
+            self.parent.dlock.release()
 
 class DFrame(wx.Frame):
     def bpgdecode(self,filename):
@@ -322,21 +330,17 @@ class DFrame(wx.Frame):
                 self.img=None
         else: return True
         return False
-
     def stitle(self,title):
         self.Title=title
         if osflag: self.Update()
         else: self.Refresh()
-
     def deftitle(self):
         self.stitle(_('Press Ctrl+O to open BPG file...'))
-
     def getcsize(self):
         cr=wx.Display().GetClientArea()
         cw=self.GetSize()
         cc=self.GetClientSize()
         return cr[2]-cr[0]-cw[0]+cc[0],cr[3]-cr[1]-cw[1]+cc[1]
-
     def bitmapfrompil(self,img):
         if img.mode[-1]=='A':
             if wx.VERSION[0]<4:
@@ -352,13 +356,11 @@ class DFrame(wx.Frame):
             else:
                 return wx.Bitmap.FromBuffer(img.size[0],img.size[1],\
                     img.convert("RGB").tobytes())
-
     def scalebitmap(self,width,height):
         if self.img:
             return self.bitmapfrompil(self.img.resize((int(width),\
                 int(height)),Image.ANTIALIAS))
         else: return None
-
     def showbitmap(self,bitmap):
         self.bitmap._clear=True
         if bitmap==None: self.showempty()
@@ -380,7 +382,6 @@ class DFrame(wx.Frame):
                 self.Fit()
                 self.Center()
             else: self.Layout()
-
     def emptybitmap(self):
         if wx.VERSION[0]<4: buffer=wx.EmptyBitmap(400,300)
         else: buffer=wx.Bitmap(400,300)
@@ -389,7 +390,6 @@ class DFrame(wx.Frame):
         dc.Clear()
         dc.Destroy()
         return buffer
-
     def showempty(self):
         if self.img:
             try: del self.img
@@ -397,7 +397,6 @@ class DFrame(wx.Frame):
             self.img=None
             self.showbitmap(self.emptybitmap())
         self.imginfo=''
-
     def autoscaled(self):
         if self.img:
             if self.IsFullScreen(): cx,cy=wx.DisplaySize()
@@ -422,8 +421,7 @@ class DFrame(wx.Frame):
                 self.autoscale=self.scale
                 return self.bitmapfrompil(self.img)
         return None
-
-    def showimage(self,filename):
+    def _showimage(self,filename):
         filename=__(filename,self.codepage)
         if len(filename) and self.bpgdecode(filename):
             if len(self.filelist)==0:
@@ -437,7 +435,11 @@ class DFrame(wx.Frame):
         if len(self.imginfo): self.stitle(self.filelist[self.index]+\
             ' ('+self.imginfo+')')
         else: self.deftitle()
-
+    def showimage(self,filename):
+        if not self.dlock.acquire(False): return
+        self.dlock.release()
+        self.dthread=DecodeThread(self,lambda: self._showimage(filename))
+        self.dthread.start()
     def getfilelist(self,dirname):
         filelist=[]
         for f in sorted(listdir(dirname)):
@@ -449,7 +451,6 @@ class DFrame(wx.Frame):
                     filelist.append(fname)
             except: pass
         return filelist
-
     def __init__(self,parent,title):
         kwds={}
         args=[]
@@ -466,6 +467,7 @@ class DFrame(wx.Frame):
         self.img=None
         self.imginfo=''
         self.fifo=''
+        self.dlock=Lock()
         self.mpos=None
         t,self.fifo=mkstemp(suffix='.rgb',prefix='')
         close(t)
@@ -514,26 +516,22 @@ class DFrame(wx.Frame):
         self.Layout()
         self.Center()
         self.panel.SetFocus()
-
     def loadindex(self,old):
         if self.index!=old:
             self.stitle(_('Loading...'))
             self.showimage(self.filelist[self.index])
-
     def previous(self):
         if len(self.filelist):
             old=self.index
             if self.index: self.index-=1
             else: self.index=len(self.filelist)-1
             self.loadindex(old)
-
     def next(self):
         if len(self.filelist):
             old=self.index
             if self.index<len(self.filelist)-1: self.index+=1
             else: self.index=0
             self.loadindex(old)
-
     def drag(self,event):
         if self.img:
             if event.Dragging():
@@ -554,7 +552,6 @@ class DFrame(wx.Frame):
         if event.ButtonDClick():
             self.mpos=None
             self.maximize()
-
     def rotate(self,dir):
         if self.img:
             self.bitmap._clear=True
@@ -569,7 +566,6 @@ class DFrame(wx.Frame):
                 else: self.showbitmap(self.bitmapfrompil(self.img))
             if len(self.imginfo): self.stitle(self.filelist[self.index]+\
                 ' ('+self.imginfo+')')
-
     def fresize(self,event):
         x,y=self.GetClientSize()
         self.panel.SetInitialSize(size=(x,y))
@@ -584,14 +580,12 @@ class DFrame(wx.Frame):
                 self.autoimg()
             else: self.max=False
         self.Layout()
-    
     def autoimg(self):
         if self.scale==self.autoscale:
             self.showbitmap(self.autoscaled())
             if len(self.imginfo): self.stitle(self.filelist[self.index]+\
                 ' ('+self.imginfo+')')
             else: self.deftitle()
-
     def maximize(self):
         if not(self.IsFullScreen()):
             if self.IsMaximized() or self.max:
@@ -600,7 +594,6 @@ class DFrame(wx.Frame):
             else:
                 self.max=True
                 self.Maximize()
-
     def keydown(self,event):
         keycode=event.GetKeyCode()
         if keycode==wx.WXK_ESCAPE:
@@ -667,7 +660,6 @@ class DFrame(wx.Frame):
                         self.deftitle()
             return
         event.Skip()
-
     def keychar(self,event):
         keycode=event.GetKeyCode()
         try: co_code=wx.WXK_CONTROL_O
@@ -799,7 +791,6 @@ class DFrame(wx.Frame):
             self.rotate(False)
             return
         event.Skip()
-
     def __del__(self):
         if osflag and exists(self.fifo):
             try: remove(self.fifo)
