@@ -25,12 +25,12 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 '''
 
-from sys import argv,exit
+from sys import argv,exit,version_info
 from os import listdir,access,R_OK,W_OK,stat,close,remove,mkdir
 from os.path import exists,isfile,dirname,basename,realpath,join,abspath,expanduser
 from tempfile import mkstemp
 from shutil import copyfile,rmtree
-from subprocess import Popen,PIPE,STDOUT
+from subprocess import call,Popen,PIPE,STDOUT
 from math import floor
 import StringIO
 from struct import unpack
@@ -40,7 +40,12 @@ from os import mkfifo,O_RDONLY,O_NONBLOCK
 from os import open as osopen
 from os import read as osread
 from os import close as osclose
+import wx
+from PIL import Image
+from PIL.Image import core as _imaging
+from threading import Thread,Lock
 import errno
+#from Foundation import NSUserDefaults
 
 #postinstall
 path=join(expanduser('~'),'Library/Saved Application State/org.asimbarsky.osx.bpgviewer.savedState')
@@ -52,9 +57,9 @@ if exists(path) and not exists(ipath):
         mkdir(ipath)
     except: pass
     f=Popen(['chmod','-w',path],False,stdin=None,stdout=None,stderr=None)
-    f.wait();
+    f.wait()
     f=Popen(['qlmanage','-r'],False,stdin=None,stdout=None,stderr=None)
-    f.wait();
+    f.wait()
 #postinstall
 
 wxapp=False
@@ -62,11 +67,14 @@ wxapp=False
 class translator():
     def __init__(self):
         self.voc={}
-        self.locale=locale.getdefaultlocale()
-
+        f=Popen('defaults read -g "AppleLanguages"',shell=True,stdin=None,\
+                stdout=PIPE,stderr=STDOUT)
+        l=f.stdout.readlines()[1].strip().strip('"').replace('-','_')
+        f.wait()
+        self.locale=(l,'UTF-8')
     def find(self,key):
-        if self.voc.has_key(key):
-            if self.voc[key].has_key(self.locale[0]):
+        if key in self.voc:
+            if self.locale[0] in self.voc[key]:
                 return self.voc[key][self.locale[0]].encode(self.locale[1])
         return key
 
@@ -111,37 +119,16 @@ v/27oGeB/Ww8MB1koezyydXF8eg/cEBnVw==\
 def _(s):
     return t.find(s)
 
-def errmsg(msg):
-    print msg
-
-try: import wx
-except:
-    msg=_("Please install")+" wxPython 2.8 ("+_("or higher")+\
-        ") (http://www.wxpython.org/)!\n"+\
-        _("Under Debian or Ubuntu you may try")+":\n"\
-        "sudo aptitude install python-wxgtk2.8\n"+_("or")+"\n"+\
-        "sudo aptitude install python-wxgtk3.0"
-    errmsg(msg)
-    raise RuntimeError(msg)
-
-try:
-    from PIL import Image
-    from PIL.Image import core as _imaging
-except:
-    msg=_("Please install")+" Python Imaging Library (PIL) 1.1.7 ("+\
-        _("or higher")+") (http://www.pythonware.com/products/pil/)\n"+\
-        _("or")+" Pillow 3.2.0 ("+_("or higher")+\
-        ") (https://pillow.readthedocs.org/en/3.2.x/)!\n"+\
-        _("Under Debian or Ubuntu you may try")+":\n"\
-        "sudo aptitude install python-imaging\n"+_("or")+"\n"+\
-        "sudo aptitude install python-pil"
-    errmsg(msg)
-    raise RuntimeError(msg)
+def __(s,codepage):
+    if version_info[0]<3:
+        if type(s) is unicode: s=s.encode(codepage)
+    return s
 
 def errmsgbox(msg):
-    if not(wxapp): app=wx.App(0)
-    wx.MessageBox(msg,_('Error!'),wx.OK|wx.ICON_ERROR)
-    if not(wxapp): app.Exit()
+    try: wx.MessageBox(msg,_('Error!'),wx.OK|wx.ICON_ERROR)
+    except: pass
+    wx.GetApp().GetTopWindow().Close()
+
 
 def bpggetcmd():
     binname='bpgdec'
@@ -163,14 +150,11 @@ class GenBitmap(wx.Panel):
         self.SetInitialSize(size)
         self.Bind(wx.EVT_ERASE_BACKGROUND,lambda e: None)
         self.Bind(wx.EVT_PAINT,self.OnPaint)
-
     def SetBitmap(self,bitmap):
         self._bitmap=bitmap
         self.SetInitialSize((bitmap.GetWidth(),bitmap.GetHeight()))
         self.Refresh()
-
     def GetBitmap(self): return self._bitmap
-
     def OnPaint(self, event):
         dc=wx.PaintDC(self)
         if self._clear: dc.Clear()
@@ -178,9 +162,26 @@ class GenBitmap(wx.Panel):
             dc.DrawBitmap(self._bitmap,0,0,True)
         self._clear=False
 
+class DecodeThread(Thread):
+    def __init__(self,parent,func):
+        Thread.__init__(self)
+        self.parent=parent
+        self.func=func
+    def run(self):
+        if self.parent.dlock.acquire(False):
+            self.func()
+            self.parent.dlock.release()
+
+SE_EVT_TYPE=wx.NewEventType()
+SE_EVT_BNDR=wx.PyEventBinder(SE_EVT_TYPE,1)
+class ShowEvent(wx.PyCommandEvent):
+    def __init__(self,etype,eid):
+        wx.PyCommandEvent.__init__(self,etype,eid)
+
 class DFrame(wx.Frame):
-    def bpgdecode(self,filename):
+    def bpgdecode(self,filename,retries=2):
         msg=None
+        retries=2
         cmd='"'+self.bpgpath+'" -o '
         if self.img:
             del self.img
@@ -215,13 +216,17 @@ class DFrame(wx.Frame):
                         x,=unpack("i",imbuffer[1:5])
                         y,=unpack("i",imbuffer[5:9])
                         try: self.img=Image.frombytes(mode,(x,y),imbuffer[9:])
-                        except: err=1
+                        except:
+                            if retries:
+                                retries-=1
+                                self.bpgdecode(filename,retries-1)
+                            else: err=1
                         del imbuffer
                     else: err=1
                 except: err=1
                 if err: msg=_('BPG decoding error!\n')
         else: msg=_('File')+' \"%s\" '%filename+_('is not a BPG-File!')
-        if msg:
+        if msg and retries==2:
             print msg
             errmsgbox(msg)
             if self.img:
@@ -229,20 +234,16 @@ class DFrame(wx.Frame):
                 self.img=None
         else: return True
         return False
-
     def stitle(self,title):
         self.Title=title
         self.Update()
-
     def deftitle(self):
         self.stitle(_('Press ⌘O to open BPG file...'))
-
     def getcsize(self):
         cr=wx.Display().GetClientArea()
         cw=self.GetSize()
         cc=self.GetClientSize()
         return cr[2]-cr[0]-cw[0]+cc[0],cr[3]-cr[1]-cw[1]+cc[1]
-
     def bitmapfrompil(self,img):
         if img.mode[-1]=='A':
             return wx.Bitmap.FromBufferRGBA(img.size[0],\
@@ -250,13 +251,11 @@ class DFrame(wx.Frame):
         else:
             return wx.Bitmap.FromBuffer(img.size[0],img.size[1],\
                 img.convert("RGB").tobytes())
-
     def scalebitmap(self,width,height):
         if self.img:
             return self.bitmapfrompil(self.img.resize((int(width),\
                 int(height)),Image.ANTIALIAS))
         else: return None
-
     def showbitmap(self,bitmap):
         self.bitmap._clear=True
         if bitmap==None: self.showempty()
@@ -277,7 +276,6 @@ class DFrame(wx.Frame):
                 self.Fit()
                 self.Center()
             else: self.Layout()
-
     def emptybitmap(self):
         buffer=wx.Bitmap(400,300)
         dc=wx.BufferedDC(None,buffer)
@@ -285,7 +283,6 @@ class DFrame(wx.Frame):
         dc.Clear()
         dc.Destroy()
         return buffer
-
     def showempty(self):
         if self.img:
             try: del self.img
@@ -293,7 +290,6 @@ class DFrame(wx.Frame):
             self.img=None
             self.showbitmap(self.emptybitmap())
         self.imginfo=''
-
     def autoscaled(self):
         if self.img:
             if self.IsFullScreen(): cx,cy=wx.DisplaySize()
@@ -313,11 +309,13 @@ class DFrame(wx.Frame):
                 self.scale=d*100.0
                 self.autoscale=self.scale
                 return self.scalebitmap(x,y)
-            else: return self.bitmapfrompil(self.img)
+            else:
+                self.scale=100.0
+                self.autoscale=self.scale
+                return self.bitmapfrompil(self.img)
         return None
-
-    def showimage(self,filename):
-        if type(filename) is unicode: filename=filename.encode(self.codepage)
+    def _showimage(self,filename):
+        filename=__(filename,self.codepage)
         if len(filename) and self.bpgdecode(filename):
             if len(self.filelist)==0:
                 self.filelist=self.getfilelist(dirname(realpath(filename)))
@@ -326,11 +324,17 @@ class DFrame(wx.Frame):
                     if self.filelist[self.index]==realpath(filename): break
                     else: self.index+=1
                     if self.index>=len(self.filelist): break
+        wx.PostEvent(self,ShowEvent(SE_EVT_TYPE,-1))
+    def _evt_showimage(self,evt):
         self.showbitmap(self.autoscaled())
         if len(self.imginfo): self.stitle(self.filelist[self.index]+\
             ' ('+self.imginfo+')')
         else: self.deftitle()
-
+    def showimage(self,filename):
+        if not self.dlock.acquire(False): return
+        self.dlock.release()
+        self.dthread=DecodeThread(self,lambda: self._showimage(filename))
+        self.dthread.start()
     def getfilelist(self,dirname):
         filelist=[]
         for f in sorted(listdir(dirname)):
@@ -343,7 +347,6 @@ class DFrame(wx.Frame):
                     filelist.append(fname)
             except: pass
         return filelist
-
     def __init__(self,parent,title):
         kwds={}
         args=[]
@@ -361,10 +364,11 @@ class DFrame(wx.Frame):
         self.imginfo=''
         self.fifo=''
         self.mpos=None
+        self.dlock=Lock()
         t,self.fifo=mkstemp(suffix='.rgb',prefix='')
         close(t)
         remove(self.fifo)
-        try: mkfifo(self.fifo,0700)
+        try: mkfifo(self.fifo,0o766)
         except:
             msg=_('Unable to create FIFO file!')
             print msg
@@ -396,30 +400,29 @@ class DFrame(wx.Frame):
         self.bitmap.Bind(wx.EVT_MOUSE_EVENTS,self.drag)
         self.Bind(wx.EVT_SIZE,self.fresize)
         self.Bind(wx.EVT_ERASE_BACKGROUND,lambda e: None)
+        self.Bind(SE_EVT_BNDR,self._evt_showimage)
         self.Layout()
         self.Center()
         self.panel.SetFocus()
-
     def loadindex(self,old):
         if self.index!=old:
             self.stitle(_('Loading...'))
             self.showimage(self.filelist[self.index])
-
     def previous(self):
         if len(self.filelist):
             old=self.index
             if self.index: self.index-=1
             else: self.index=len(self.filelist)-1
             self.loadindex(old)
-
     def next(self):
         if len(self.filelist):
             old=self.index
             if self.index<len(self.filelist)-1: self.index+=1
             else: self.index=0
             self.loadindex(old)
-
     def drag(self,event):
+        if not self.dlock.acquire(False): return
+        self.dlock.release()
         if self.img:
             if event.Dragging():
                 pos=event.GetPosition()
@@ -439,7 +442,6 @@ class DFrame(wx.Frame):
         if event.ButtonDClick():
             self.mpos=None
             self.maximize()
-
     def rotate(self,dir):
         if self.img:
             self.stitle(_('Rotating...'))
@@ -459,7 +461,6 @@ class DFrame(wx.Frame):
                             self.img.size[1],self.img.convert("RGB").tobytes()))
             if len(self.imginfo): self.stitle(self.filelist[self.index]+\
                 ' ('+self.imginfo+')')
-
     def fresize(self,event):
         x,y=self.GetClientSize()
         self.panel.SetInitialSize(size=(x,y))
@@ -474,15 +475,15 @@ class DFrame(wx.Frame):
                 self.autoimg()
             else: self.max=False
         self.Layout()
-    
     def autoimg(self):
         if self.scale==self.autoscale:
             self.showbitmap(self.autoscaled())
             if len(self.imginfo): self.stitle(self.filelist[self.index]+\
                 ' ('+self.imginfo+')')
             else: self.deftitle()
-
     def maximize(self):
+        if not self.dlock.acquire(False): return
+        self.dlock.release()
         if not(self.IsFullScreen()):
             if self.IsMaximized() or self.max:
                 self.max=False
@@ -490,8 +491,9 @@ class DFrame(wx.Frame):
             else:
                 self.max=True
                 self.Maximize()
-
     def keydown(self,event):
+        if not self.dlock.acquire(False): return
+        self.dlock.release()
         keycode=event.GetKeyCode()
         if keycode==wx.WXK_ESCAPE:
             self.Close()
@@ -557,8 +559,9 @@ class DFrame(wx.Frame):
                         self.deftitle()
             return
         event.Skip()
-
     def keychar(self,event):
+        if not self.dlock.acquire(False): return
+        self.dlock.release()
         keycode=event.GetKeyCode()
         if event.CmdDown():
             if keycode in [ord('O'),ord('o')]: keycode=15
@@ -703,7 +706,6 @@ class DFrame(wx.Frame):
             self.rotate(False)
             return
         event.Skip()
-
     def __del__(self):
         if exists(self.fifo):
             try: remove(self.fifo)
@@ -715,15 +717,12 @@ class bpgframe(wx.App):
             self.GetTopWindow().Raise()
         except:
             pass
-
     def OnActivate(self, event):
         if event.GetActive():
             self.BringWindowToFront()
         event.Skip()
-
     def MacReopenApp(self):
         self.BringWindowToFront()
-
     def __init__(self,parent,filename):
         super(bpgframe,self).__init__(parent)
         frame=DFrame(None,filename)
