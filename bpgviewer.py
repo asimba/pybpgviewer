@@ -27,7 +27,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from sys import argv,exit,version_info
 from os import listdir,access,R_OK,stat,close,remove
-from os.path import exists,isfile,dirname,basename,realpath,join,abspath
+from os.path import exists,isfile,isdir,dirname,basename,realpath,join,abspath
 from tempfile import mkstemp
 from shutil import copyfile
 from subprocess import Popen,PIPE,STDOUT
@@ -71,39 +71,41 @@ def load_voc(str):
         return pickle.loads(zlib.decompress(base64.decodestring(str)))
 
 t.voc=load_voc("\
-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\
+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\
+1UX/+F9G8wii\
 ")
 
 def _(s):
@@ -255,6 +257,17 @@ SE_EVT_BNDR=wx.PyEventBinder(SE_EVT_TYPE,1)
 class ShowEvent(wx.PyCommandEvent):
     def __init__(self,etype,eid):
         wx.PyCommandEvent.__init__(self,etype,eid)
+
+class FileDropTarget(wx.FileDropTarget):
+    def __init__(self,obj):
+        wx.FileDropTarget.__init__(self)
+        self.obj=obj
+    def OnDropFiles(self,x,y,filenames):
+        self.obj.showempty()
+        self.obj.index=0
+        self.obj.filelist=[]
+        self.obj.showimage(self.obj.checkpath(filenames[0]))
+        return True
 
 class DFrame(wx.Frame):
     def bpgdecode(self,filename):
@@ -459,6 +472,11 @@ class DFrame(wx.Frame):
                     filelist.append(fname)
             except: pass
         return filelist
+    def checkpath(self,path):
+        if isdir(path):
+            self.filelist=self.getfilelist(realpath(path))
+            if len(self.filelist): path=self.filelist[0]
+        return path
     def __init__(self,parent,title):
         kwds={}
         args=[]
@@ -466,6 +484,8 @@ class DFrame(wx.Frame):
         kwds["title"]=title
         kwds["parent"]=parent
         wx.Frame.__init__(self,*args,**kwds)
+        self.dt=FileDropTarget(self)
+        self.SetDropTarget(self.dt)
         self.max=False
         self.codepage=locale.getdefaultlocale()[1]
         self.bpgpath=bpggetcmd()
@@ -504,10 +524,9 @@ class DFrame(wx.Frame):
         self.sizer.AddGrowableRow(0)
         self.sizer.Add(self.panel,1,wx.ALIGN_CENTER,0)
         self.SetSizer(self.sizer)
+        title=self.checkpath(title)
         self.showimage(title)
         self.bitmap.Bind(wx.EVT_KEY_DOWN,self.keydown)
-        self.bitmap.Bind(wx.EVT_CHAR,self.keychar)
-        self.bitmap.Bind(wx.EVT_TEXT_ENTER,self.keychar)
         self.bitmap.Bind(wx.EVT_MOTION,self.drag)
         self.panel.Bind(wx.EVT_MOUSE_EVENTS,self.drag)
         self.bitmap.Bind(wx.EVT_MOUSE_EVENTS,self.drag)
@@ -541,6 +560,14 @@ class DFrame(wx.Frame):
             if self.index<len(self.filelist)-1: self.index+=1
             else: self.index=0
             self.loadindex(old)
+    def first(self):
+        if len(self.filelist) and self.index:
+            self.index=0
+            self.loadindex(1)
+    def last(self):
+        if len(self.filelist) and self.index!=len(self.filelist)-1:
+            self.index=len(self.filelist)-1
+            self.loadindex(0)
     def drag(self,event):
         if not self.dlock.acquire(False): return
         self.dlock.release()
@@ -611,202 +638,200 @@ class DFrame(wx.Frame):
         if not self.dlock.acquire(False): return
         self.dlock.release()
         keycode=event.GetKeyCode()
-        if keycode==wx.WXK_ESCAPE:
-            self.Close()
-            return
-        if keycode in [wx.WXK_PAGEUP,wx.WXK_NUMPAD_PAGEUP,wx.WXK_BACK]:
-            self.previous()
-            return
-        if keycode in [wx.WXK_PAGEDOWN,wx.WXK_NUMPAD_PAGEDOWN,wx.WXK_RETURN]:
-            self.next()
-            return
-        if keycode in [wx.WXK_LEFT,wx.WXK_NUMPAD_LEFT]:
-            self.panel.Scroll(self.panel.GetScrollPos(wx.HORIZONTAL)-5,\
-                self.panel.GetScrollPos(wx.VERTICAL))
-            return
-        if keycode in [wx.WXK_RIGHT,wx.WXK_NUMPAD_RIGHT]:
-            self.panel.Scroll(self.panel.GetScrollPos(wx.HORIZONTAL)+5,\
-                self.panel.GetScrollPos(wx.VERTICAL))
-            return
-        if keycode in [wx.WXK_UP,wx.WXK_NUMPAD_UP]:
-            self.panel.Scroll(self.panel.GetScrollPos(wx.HORIZONTAL),\
-                self.panel.GetScrollPos(wx.VERTICAL)-5)
-            return
-        if keycode in [wx.WXK_DOWN,wx.WXK_NUMPAD_DOWN]:
-            self.panel.Scroll(self.panel.GetScrollPos(wx.HORIZONTAL),\
-                self.panel.GetScrollPos(wx.VERTICAL)+5)
-            return
-        if keycode==wx.WXK_F1:
-            wx.MessageBox(_('This is BPG image file viewer. Hot keys:\n')+\
-            _('Esc - close\n')+\
-            _('Ctrl-O - open BPG image file\n')+\
-            _('Ctrl-S - save a copy of the opened file as a PNG file\n')+\
-            _('Ctrl-C - save a copy of the opened file\n')+\
-            _('Ctrl-R - rotate 90 degrees clockwise\n')+\
-            _('Ctrl-L - rotate 90 degrees counterclockwise\n')+\
-            _('Ctrl-F - toggle full screen mode\n')+\
-            _('+ - zoom in (up to 100%)\n')+\
-            _('- - zoom out (down to the smallest available size)\n')+\
-            _('* - zoom out to fit window area\n')+\
-            _('Left,Up,Right,Down - move over the scaled image\n')+\
-            _('PgUp,Backspace,A,S - view previous file\n')+\
-            _('PgDown,Return,D,W - view next file\n')+\
-            _('Delete - delete current file\n'),_('Help'),\
-            wx.OK|wx.ICON_INFORMATION)
-            return
-        if keycode in [wx.WXK_DELETE,wx.WXK_NUMPAD_DELETE]:
-            if len(self.filelist) and self.img:
-                if wx.MessageBox(_('Delete file')+' "'+\
-                    self.filelist[self.index]+'"?',_('File deletion!'),\
-                    wx.YES_NO|wx.ICON_WARNING|wx.NO_DEFAULT)==wx.YES:
-                    index=self.index
-                    try: remove(self.filelist[index])
-                    except:
-                        msg=_('Unable to delete:')+\
-                            ' \"%s\"!'%self.filelist[self.index]
-                        errmsgbox(msg)
-                        return
-                    self.filelist.pop(index)
-                    if len(self.filelist):
-                        if index>=len(self.filelist): self.index=0
-                        self.loadindex(None)
-                    else:
-                        self.showempty()
-                        self.deftitle()
-            return
-        event.Skip()
-    def keychar(self,event):
-        if not self.dlock.acquire(False): return
-        self.dlock.release()
-        keycode=event.GetKeyCode()
-        try: co_code=wx.WXK_CONTROL_O
-        except: co_code=15
-        try: cs_code=wx.WXK_CONTROL_S
-        except: cs_code=19
-        try: cc_code=wx.WXK_CONTROL_C
-        except: cc_code=3
-        try: cr_code=wx.WXK_CONTROL_R
-        except: cr_code=18
-        try: cl_code=wx.WXK_CONTROL_L
-        except: cl_code=12
-        if osflag: rt_code=370
-        else: rt_code=13
-        try: cf_code=wx.WXK_CONTROL_F
-        except: cf_code=6
-        if keycode==cf_code:
-            if self.IsFullScreen():
-                self.ShowFullScreen(False,style=wx.DEFAULT_FRAME_STYLE)
-            else:
-                self.ShowFullScreen(True,style=wx.FULLSCREEN_ALL)
-                self.autoimg()
-            return
-        if keycode in [rt_code,ord('D'),ord('W'),ord('d'),ord('w')]:
-            self.next()
-            return
-        if keycode in [ord('A'),ord('S'),ord('a'),ord('s')]:
-            self.previous()
-            return
-        if keycode==co_code:
-            openFileDialog = wx.FileDialog(self,_('Open BPG file'),"","",\
-                _("BPG files")+" (*.bpg)|*.bpg",\
-                wx.FD_OPEN|wx.FD_FILE_MUST_EXIST)
-            status=openFileDialog.ShowModal()
-            if status==wx.ID_CANCEL: return
-            if status==wx.ID_OK:
-                self.stitle(_('Loading...'))
-                self.filelist=[]
-                self.showimage(openFileDialog.GetPath())
-                openFileDialog.Destroy()
-            return
-        if keycode==cs_code and self.img:
-            saveFileDialog=wx.FileDialog(self,_("Save BPG file as PNG file"),\
-                "",basename(self.filelist[self.index])[:-4]+'.png',\
-                _("PNG files")+" (*.png)|*.png",\
-                wx.FD_SAVE|wx.FD_OVERWRITE_PROMPT)
-            status=saveFileDialog.ShowModal()
-            if status==wx.ID_CANCEL: return
-            if status==wx.ID_OK:
-                dst=saveFileDialog.GetPath()
-                dst=__(dst,self.codepage)
-                if dst[-4:].lower()!='.png': dst+='.png'
-                ttitle=self.Title
-                self.stitle(_('Saving PNG file...'))
-                try:
-                    if exists(dst): remove(dst)
-                    self.img.save(dst,'PNG',optimize=True)
-                except: errmsgbox(_('Unable to save')+' \"%s\"!'%dst)
-                self.stitle(ttitle)
+        if event.ControlDown():
+            if keycode==ord('F'):
+                if self.IsFullScreen():
+                    self.ShowFullScreen(False,style=wx.DEFAULT_FRAME_STYLE)
+                else:
+                    self.ShowFullScreen(True,style=wx.FULLSCREEN_ALL)
+                    self.autoimg()
                 return
-        if keycode==cc_code and self.img:
-            saveFileDialog=wx.FileDialog(self,_("Save a copy..."),"",\
-                basename(self.filelist[self.index])[:-4],\
-                _("BPG files")+" (*.bpg)|*.bpg",\
-                wx.FD_SAVE|wx.FD_OVERWRITE_PROMPT)
-            status=saveFileDialog.ShowModal()
-            if status==wx.ID_CANCEL: return
-            if status==wx.ID_OK:
-                dst=saveFileDialog.GetPath()
-                try:
+            if keycode==ord('O'):
+                openFileDialog = wx.FileDialog(self,_('Open BPG file'),"","",\
+                    _("BPG files")+" (*.bpg)|*.bpg",\
+                    wx.FD_OPEN|wx.FD_FILE_MUST_EXIST)
+                status=openFileDialog.ShowModal()
+                if status==wx.ID_CANCEL: return
+                if status==wx.ID_OK:
+                    self.stitle(_('Loading...'))
+                    self.filelist=[]
+                    self.showimage(openFileDialog.GetPath())
+                    openFileDialog.Destroy()
+                return
+            if keycode==ord('S') and self.img:
+                saveFileDialog=wx.FileDialog(self,_("Save BPG file as PNG file"),\
+                    "",basename(self.filelist[self.index])[:-4]+'.png',\
+                    _("PNG files")+" (*.png)|*.png",\
+                    wx.FD_SAVE|wx.FD_OVERWRITE_PROMPT)
+                status=saveFileDialog.ShowModal()
+                if status==wx.ID_CANCEL: return
+                if status==wx.ID_OK:
+                    dst=saveFileDialog.GetPath()
                     dst=__(dst,self.codepage)
-                    if exists(dst) and\
-                        abspath(self.filelist[self.index])!=dst: remove(dst)
-                    copyfile(self.filelist[self.index],dst)
-                except: errmsgbox(_('Unable to save')+' \"%s\"!'%dst)
+                    if dst[-4:].lower()!='.png': dst+='.png'
+                    ttitle=self.Title
+                    self.stitle(_('Saving PNG file...'))
+                    try:
+                        if exists(dst): remove(dst)
+                        self.img.save(dst,'PNG',optimize=True)
+                    except: errmsgbox(_('Unable to save')+' \"%s\"!'%dst)
+                    self.stitle(ttitle)
+                    return
+            if keycode==ord('C') and self.img:
+                saveFileDialog=wx.FileDialog(self,_("Save a copy..."),"",\
+                    basename(self.filelist[self.index])[:-4],\
+                    _("BPG files")+" (*.bpg)|*.bpg",\
+                    wx.FD_SAVE|wx.FD_OVERWRITE_PROMPT)
+                status=saveFileDialog.ShowModal()
+                if status==wx.ID_CANCEL: return
+                if status==wx.ID_OK:
+                    dst=saveFileDialog.GetPath()
+                    try:
+                        dst=__(dst,self.codepage)
+                        if exists(dst) and\
+                            abspath(self.filelist[self.index])!=dst: remove(dst)
+                        copyfile(self.filelist[self.index],dst)
+                    except: errmsgbox(_('Unable to save')+' \"%s\"!'%dst)
+                    return
+            if keycode==ord('R'):
+                self.rotate(True)
                 return
-        if keycode in [ord('+'),ord('=')]:
-            if self.img and self.scale<100.0:
-                self.stitle(_('Zooming in...'))
-                self.scale+=5.0
-                if self.scale>100.0: self.scale=100.0
-                if self.scale!=100.0:
-                    x=self.img.size[0]*(self.scale/100.0)
-                    y=self.img.size[1]*(self.scale/100.0)
-                    self.showbitmap(self.scalebitmap(x,y))
-                else: self.showbitmap(self.bitmapfrompil(self.img))
-                if len(self.imginfo): self.stitle(self.filelist[self.index]+\
-                    ' ('+self.imginfo+')')
-                else: self.deftitle()
-            return
-        if keycode==ord('-'):
-            if self.img and self.scale>self.autoscale:
-                self.stitle(_('Zooming out...'))
-                self.scale-=5.0
-                if self.scale<self.autoscale: self.scale=self.autoscale
-                if self.scale!=100.0:
-                    x=self.img.size[0]*(self.scale/100.0)
-                    y=self.img.size[1]*(self.scale/100.0)
-                    self.showbitmap(self.scalebitmap(x,y))
-                else: self.showbitmap(self.bitmapfrompil(self.img))
-                if len(self.imginfo): self.stitle(self.filelist[self.index]+\
-                    ' ('+self.imginfo+')')
-                else: self.deftitle()
-            return
-        if keycode in [ord('*'),ord('8')]:
-            if self.img:
-                cx,cy=self.GetClientSize()
-                x,y=self.bitmap.GetSize()
-                if cx<x or cy<y:
-                    x=self.img.size[0]
-                    y=self.img.size[1]
-                    d0=float(cx)/float(x)
-                    d1=float(cy)/float(y)
-                    self.scale=d0 if d0<d1 else d1
-                    x=floor(x*self.scale)
-                    y=floor(y*self.scale)
-                    self.scale*=100.0
-                    self.autoscale=self.scale
-                    self.showbitmap(self.scalebitmap(x,y))
-                    if len(self.imginfo):
-                        self.stitle(self.filelist[self.index]+\
+            if keycode==ord('L'):
+                self.rotate(False)
+                return
+            if keycode in [wx.WXK_LEFT,wx.WXK_NUMPAD_LEFT]:
+                self.first()
+                return
+            if keycode in [wx.WXK_RIGHT,wx.WXK_NUMPAD_RIGHT]:
+                self.last()
+                return
+        else:
+            if keycode==wx.WXK_HOME:
+                self.first()
+                return
+            if keycode==wx.WXK_END:
+                self.last()
+                return
+            if keycode==wx.WXK_ESCAPE:
+                self.Close()
+                return
+            if keycode in [wx.WXK_PAGEUP,wx.WXK_NUMPAD_PAGEUP,wx.WXK_BACK]:
+                self.previous()
+                return
+            if keycode in [wx.WXK_PAGEDOWN,wx.WXK_NUMPAD_PAGEDOWN,\
+                wx.WXK_RETURN]:
+                self.next()
+                return
+            if keycode in [wx.WXK_LEFT,wx.WXK_NUMPAD_LEFT]:
+                self.panel.Scroll(self.panel.GetScrollPos(wx.HORIZONTAL)-5,\
+                    self.panel.GetScrollPos(wx.VERTICAL))
+                return
+            if keycode in [wx.WXK_RIGHT,wx.WXK_NUMPAD_RIGHT]:
+                self.panel.Scroll(self.panel.GetScrollPos(wx.HORIZONTAL)+5,\
+                    self.panel.GetScrollPos(wx.VERTICAL))
+                return
+            if keycode in [wx.WXK_UP,wx.WXK_NUMPAD_UP]:
+                self.panel.Scroll(self.panel.GetScrollPos(wx.HORIZONTAL),\
+                    self.panel.GetScrollPos(wx.VERTICAL)-5)
+                return
+            if keycode in [wx.WXK_DOWN,wx.WXK_NUMPAD_DOWN]:
+                self.panel.Scroll(self.panel.GetScrollPos(wx.HORIZONTAL),\
+                    self.panel.GetScrollPos(wx.VERTICAL)+5)
+                return
+            if keycode==wx.WXK_F1:
+                wx.MessageBox(_('This is BPG image file viewer. Hot keys:\n')+\
+                _('Esc - close\n')+\
+                _('Ctrl+O - open BPG image file\n')+\
+                _('Ctrl+S - save a copy of the opened file as a PNG file\n')+\
+                _('Ctrl+C - save a copy of the opened file\n')+\
+                _('Ctrl+R - rotate 90 degrees clockwise\n')+\
+                _('Ctrl+L - rotate 90 degrees counterclockwise\n')+\
+                _('Ctrl+F - toggle full screen mode\n')+\
+                _('Ctrl+Left,Home - jump to the first image in folder\n')+\
+                _('Ctrl+Right,End - jump to the last image in folder\n')+\
+                _('+ - zoom in (up to 100%)\n')+\
+                _('- - zoom out (down to the smallest available size)\n')+\
+                _('* - zoom out to fit window area\n')+\
+                _('Left,Up,Right,Down - move over the scaled image\n')+\
+                _('PgUp,Backspace,A,S - view previous file\n')+\
+                _('PgDown,Return,D,W - view next file\n')+\
+                _('Delete - delete current file\n'),_('Help'),\
+                wx.OK|wx.ICON_INFORMATION)
+                return
+            if keycode in [wx.WXK_DELETE,wx.WXK_NUMPAD_DELETE]:
+                if len(self.filelist) and self.img:
+                    if wx.MessageBox(_('Delete file')+' "'+\
+                        self.filelist[self.index]+'"?',_('File deletion!'),\
+                        wx.YES_NO|wx.ICON_WARNING|wx.NO_DEFAULT)==wx.YES:
+                        index=self.index
+                        try: remove(self.filelist[index])
+                        except:
+                            msg=_('Unable to delete:')+\
+                                ' \"%s\"!'%self.filelist[self.index]
+                            errmsgbox(msg)
+                            return
+                        self.filelist.pop(index)
+                        if len(self.filelist):
+                            if index>=len(self.filelist): self.index=0
+                            self.loadindex(None)
+                        else:
+                            self.showempty()
+                            self.deftitle()
+                return
+            if keycode in [wx.WXK_RETURN,ord('D'),ord('W')]:
+                self.next()
+                return
+            if keycode in [ord('A'),ord('S')]:
+                self.previous()
+                return
+            if keycode in [wx.WXK_NUMPAD_ADD,ord('=')]:
+                if self.img and self.scale<100.0:
+                    self.stitle(_('Zooming in...'))
+                    self.scale+=5.0
+                    if self.scale>100.0: self.scale=100.0
+                    if self.scale!=100.0:
+                        x=self.img.size[0]*(self.scale/100.0)
+                        y=self.img.size[1]*(self.scale/100.0)
+                        self.showbitmap(self.scalebitmap(x,y))
+                    else: self.showbitmap(self.bitmapfrompil(self.img))
+                    if len(self.imginfo): self.stitle(\
+                        self.filelist[self.index]+' ('+self.imginfo+')')
+                    else: self.deftitle()
+                return
+            if keycode in [wx.WXK_NUMPAD_SUBTRACT,ord('-')]:
+                if self.img and self.scale>self.autoscale:
+                    self.stitle(_('Zooming out...'))
+                    self.scale-=5.0
+                    if self.scale<self.autoscale: self.scale=self.autoscale
+                    if self.scale!=100.0:
+                        x=self.img.size[0]*(self.scale/100.0)
+                        y=self.img.size[1]*(self.scale/100.0)
+                        self.showbitmap(self.scalebitmap(x,y))
+                    else: self.showbitmap(self.bitmapfrompil(self.img))
+                    if len(self.imginfo): self.stitle(self.filelist[self.index]+\
                         ' ('+self.imginfo+')')
                     else: self.deftitle()
-            return
-        if keycode==cr_code:
-            self.rotate(True)
-            return
-        if keycode==cl_code:
-            self.rotate(False)
-            return
+                return
+            if keycode in [wx.WXK_NUMPAD_MULTIPLY,ord('8')]:
+                if self.img:
+                    cx,cy=self.GetClientSize()
+                    x,y=self.bitmap.GetSize()
+                    if cx<x or cy<y:
+                        x=self.img.size[0]
+                        y=self.img.size[1]
+                        d0=float(cx)/float(x)
+                        d1=float(cy)/float(y)
+                        self.scale=d0 if d0<d1 else d1
+                        x=floor(x*self.scale)
+                        y=floor(y*self.scale)
+                        self.scale*=100.0
+                        self.autoscale=self.scale
+                        self.showbitmap(self.scalebitmap(x,y))
+                        if len(self.imginfo):
+                            self.stitle(self.filelist[self.index]+\
+                            ' ('+self.imginfo+')')
+                        else: self.deftitle()
+                return
         event.Skip()
     def __del__(self):
         if osflag and exists(self.fifo):
