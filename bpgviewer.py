@@ -54,11 +54,15 @@ class translator():
     def __init__(self):
         self.voc={}
         self.locale=locale.getdefaultlocale()
-
     def find(self,key):
+        try: wxu=True if wx.VERSION[0]>3 else False
+        except: wxu=False
         if key in self.voc:
             if self.locale[0] in self.voc[key]:
-                return self.voc[key][self.locale[0]]
+                if wxu: return self.voc[key][self.locale[0]]
+                else:
+                    return self.voc[key][self.locale[0]].encode(\
+                        self.locale[1])
         return key
 
 t=translator()
@@ -206,6 +210,7 @@ bpglogo=PyEmbeddedImage(
 
 def errmsgbox(msg):
     if not(wxapp): app=wx.App(0)
+    print(msg)
     wx.MessageBox(msg,_('Error!'),wx.OK|wx.ICON_ERROR)
     if not(wxapp): app.Exit()
 
@@ -215,7 +220,6 @@ def bpggetcmd():
     bpgpath=join(dirname(realpath(argv[0])),binname)
     if not(isfile(bpgpath)):
         msg=_('BPG decoder not found!\n')
-        print(msg)
         errmsgbox(msg)
         exit()
     return bpgpath
@@ -255,8 +259,9 @@ class DecodeThread(Thread):
 SE_EVT_TYPE=wx.NewEventType()
 SE_EVT_BNDR=wx.PyEventBinder(SE_EVT_TYPE,1)
 class ShowEvent(wx.PyCommandEvent):
-    def __init__(self,etype,eid):
+    def __init__(self,etype,eid,value=None):
         wx.PyCommandEvent.__init__(self,etype,eid)
+        self.value=value
 
 class FileDropTarget(wx.FileDropTarget):
     def __init__(self,obj):
@@ -342,8 +347,7 @@ class DFrame(wx.Frame):
                 if err: msg=_('BPG decoding error!\n')
         else: msg=_('File')+' \"%s\" '%filename+_('is not a BPG-File!')
         if msg:
-            print(msg)
-            errmsgbox(msg)
+            wx.PostEvent(self,ShowEvent(SE_EVT_TYPE,-1,value=msg))
             if self.img:
                 del self.img
                 self.img=None
@@ -452,10 +456,12 @@ class DFrame(wx.Frame):
                     if self.index>=len(self.filelist): break
         wx.PostEvent(self,ShowEvent(SE_EVT_TYPE,-1))
     def _evt_showimage(self,evt):
-        self.showbitmap(self.autoscaled())
-        if len(self.imginfo): self.stitle(self.filelist[self.index]+\
-            ' ('+self.imginfo+')')
-        else: self.deftitle()
+        if evt.value: errmsgbox(evt.value)
+        else:
+            self.showbitmap(self.autoscaled())
+            if len(self.imginfo): self.stitle(self.filelist[self.index]+\
+                ' ('+self.imginfo+')')
+            else: self.deftitle()
     def showimage(self,filename):
         if not self.dlock.acquire(False): return
         self.dlock.release()
@@ -504,7 +510,6 @@ class DFrame(wx.Frame):
             try: mkfifo(self.fifo,0o700)
             except:
                 msg=_('Unable to create FIFO file!')
-                print(msg)
                 errmsgbox(msg)
                 exit()
         self.filelist=[]
