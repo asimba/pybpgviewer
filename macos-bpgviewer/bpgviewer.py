@@ -27,12 +27,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from sys import argv,exit,version_info
 from os import listdir,access,R_OK,W_OK,stat,close,remove,mkdir
-from os.path import exists,isfile,isdir,dirname,basename,realpath,join,abspath,expanduser
+from os.path import exists,isfile,isdir,dirname,basename,realpath,join,\
+    abspath,expanduser
 from tempfile import mkstemp
 from shutil import copyfile,rmtree
 from subprocess import call,Popen,PIPE,STDOUT
 from math import floor
-import StringIO
 from struct import unpack
 from platform import system
 import locale,pickle,base64,zlib
@@ -47,7 +47,8 @@ from threading import Thread,Lock
 import errno
 
 #postinstall
-path=join(expanduser('~'),'Library/Saved Application State/org.asimbarsky.osx.bpgviewer.savedState')
+path=join(expanduser('~'),\
+    'Library/Saved Application State/org.asimbarsky.osx.bpgviewer.savedState')
 ipath=join(path,'installed')
 if exists(path) and not exists(ipath):
     try:
@@ -68,54 +69,80 @@ class translator():
         self.voc={}
         f=Popen('defaults read -g "AppleLanguages"',shell=True,stdin=None,\
                 stdout=PIPE,stderr=STDOUT)
-        l=f.stdout.readlines()[1].strip().strip('"').replace('-','_')
+        l=str(f.stdout.readlines()[1]).strip().strip('"').replace('-','_').replace('"','').replace('','')
         f.wait()
         self.locale=(l,'UTF-8')
     def find(self,key):
+        try: wxu=True if wx.VERSION[0]>3 else False
+        except: wxu=False
         if key in self.voc:
             if self.locale[0] in self.voc[key]:
-                return self.voc[key][self.locale[0]].encode(self.locale[1])
+                if wxu: return self.voc[key][self.locale[0]]
+                else:
+                    return self.voc[key][self.locale[0]].encode(\
+                        self.locale[1])
         return key
 
 t=translator()
 
-t.voc=pickle.loads(zlib.decompress(base64.decodestring("\
-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\
-PQvyJ8M2QL9x0t226gx59B+2BRzQ\
-")))
+def add(tr,key,language,translation):
+    if key in tr.voc:
+        tr.voc[key][language]=translation
+    else:
+        tr.voc[key]={language:translation}
+
+def load(tr,data):
+    if type(data)==tuple and len(data):
+        for l in data:
+            if type(l)==tuple and len(l)==3:
+                add(tr,l[0],l[1],l[2])
+            else:
+                return
+
+load(t,(\
+("Please install","ru_RU","Пожалуйста, установите"),\
+("or higher","ru_RU","или новее"),\
+("Under Debian or Ubuntu you may try","ru_RU","В Debian или Ubuntu Вы можете попробовать следующую команду"),\
+("BPG decoder not found!\n","ru_RU","BPG декодер не найден!\n"),\
+("BPG decoding error!\n","ru_RU","Ошибка при декодировании файла!\n"),\
+("Unable to open ","ru_RU","Невозможно открыть файл "),\
+("File","ru_RU","Файл"),("is not a BPG-File!","ru_RU","не является файлом в формате BPG!"),\
+("Press ⌘O to open BPG file...","ru_RU","Нажмите ⌘O, чтобы открыть файл BPG..."),\
+("Unable to create FIFO file!","ru_RU","Невозможно создать файл FIFO!"),\
+("Loading...","ru_RU","Загрузка..."),\
+("Rotating...","ru_RU","Поворот..."),\
+("This is BPG image file viewer. Hot keys:\n","ru_RU","Просмотр изображений в формате BPG. Клавиатурные сочетания:\n"),\
+("Esc - close\n","ru_RU","Esc - выход\n"),\
+("⌘O - open BPG image file\n","ru_RU","⌘O - открыть файл\n"),\
+("⌘S - save a copy of the opened file as a PNG file\n","ru_RU","⌘S - сохранить копию изображения в формате PNG\n"),\
+("⌘C - save a copy of the opened file\n","ru_RU","⌘C - сохранить копию исходного файла\n"),\
+("⌘R - rotate 90 degrees clockwise\n","ru_RU","⌘R - поворот на 90 градусов по часовой стрелке\n"),\
+("⌘L - rotate 90 degrees counterclockwise\n","ru_RU","⌘L - поворот на 90 градусов против часовой стрелки\n"),\
+("⌘F - toggle full screen mode\n","ru_RU","⌘F - включить/выключить полноэкранный режим\n"),\
+("⌘Left,Home - jump to the first image in folder\n","ru_RU","⌘Left,Home - перейти к первому изображению в папке\n"),\
+("⌘Right,End - jump to the last image in folder\n","ru_RU","⌘Right,End - перейти к последнему изображению в папке\n"),\
+("+ - zoom in (up to 100%)\n","ru_RU","+ - увеличить (не более чем до 100%)\n"),\
+("- - zoom out (down to the smallest available size)\n","ru_RU","- - уменьшить (до минимального доступного размера)\n"),\
+("* - zoom out to fit window area\n","ru_RU","* - уменьшить до размеров по умолчанию\n"),\
+("Left,Up,Right,Down - move over the scaled image\n","ru_RU","Left,Up,Right,Down - перемещение увеличенного изображения в окне просмотра\n"),\
+("PgUp,Backspace,A,S - view previous file\n","ru_RU","PgUp,Backspace,A,S - перейти к предыдущему файлу в директории\n"),\
+("PgDown,Return,D,W - view next file\n","ru_RU","PgDown,Return,D,W - перейти к следующему файлу в директории\n"),\
+("Delete - delete current file\n","ru_RU","Delete - удалить текущий файл\n"),\
+("Help","ru_RU","Помощь"),\
+("Delete file","ru_RU","Удалить файл"),\
+("File deletion!","ru_RU","Удаление файла"),\
+("Unable to delete:","ru_RU","Невозможно удалить:"),\
+("Open BPG file","ru_RU","Открыть файл BPG"),\
+("BPG files","ru_RU","Файлы BPG"),\
+("Save BPG file as PNG file","ru_RU","Сохранить копию изображения в формате PNG"),\
+("PNG files","ru_RU","Файлы PNG"),\
+("Saving PNG file...","ru_RU","Сохранение копии файла (PNG)..."),\
+("Unable to save","ru_RU","Невозможно сохранить файл"),\
+("Save a copy...","ru_RU","Сохранение копии файла..."),\
+("Zooming in...","ru_RU","Увеличение..."),\
+("Zooming out...","ru_RU","Уменьшение..."),
+("Error!","ru_RU","Ошибка!"),\
+))
 
 def _(s):
     return t.find(s)
@@ -129,15 +156,12 @@ def errmsgbox(msg):
     print(msg)
     try: wx.MessageBox(msg,_('Error!'),wx.OK|wx.ICON_ERROR)
     except: pass
-    wx.GetApp().GetTopWindow().Close()
-
 
 def bpggetcmd():
     binname='bpgdec'
     bpgpath=join(dirname(realpath(argv[0])),binname)
     if not(isfile(bpgpath)):
         msg=_('BPG decoder not found!\n')
-        print msg
         errmsgbox(msg)
         exit()
     return bpgpath
@@ -193,9 +217,8 @@ class FileDropTarget(wx.FileDropTarget):
         return True
 
 class DFrame(wx.Frame):
-    def bpgdecode(self,filename,retries=2):
+    def bpgdecode(self,filename):
         msg=None
-        retries=2
         cmd='"'+self.bpgpath+'" -o '
         if self.img:
             del self.img
@@ -208,12 +231,13 @@ class DFrame(wx.Frame):
             if not(msg):
                 err=0
                 try:
-                    imbuffer=''
-                    fifo=osopen(self.fifo,O_RDONLY|O_NONBLOCK)
-                    cmd+=self.fifo+' "'+realpath(filename)+'"'+\
-                        ' >/dev/null 2>&1'
-                    f=Popen(cmd,shell=True,stdin=None,stdout=None,\
-                        stderr=None)
+                    if version_info[0]<3: imbuffer=''
+                    else: imbuffer=b''
+                    t,tmp=mkstemp(suffix='.rgb',prefix='')
+                    close(t)
+                    fifo=osopen(tmp,O_RDONLY|O_NONBLOCK)
+                    cmd+=tmp+' "'+realpath(filename)+'" >/dev/null 2>&1'
+                    f=Popen(cmd,shell=True,stdin=None,stdout=None,stderr=None)
                     if fifo:
                         while True:
                             if f.poll()!=None: break;
@@ -224,23 +248,24 @@ class DFrame(wx.Frame):
                                 else: raise
                             if len(data): imbuffer+=data
                         osclose(fifo)
+                    if exists(tmp):
+                        try: remove(tmp)
+                        except: pass
                     if len(imbuffer):
-                        if imbuffer[0]=='a': mode='RGBA'
+                        if imbuffer[0]==('a' if version_info[0]<3 else 97):
+                           mode='RGBA'
                         else: mode='RGB'
                         x,=unpack("i",imbuffer[1:5])
                         y,=unpack("i",imbuffer[5:9])
+                        self.img=Image.frombytes(mode,(x,y),imbuffer[9:])
                         try: self.img=Image.frombytes(mode,(x,y),imbuffer[9:])
-                        except:
-                            if retries:
-                                retries-=1
-                                self.bpgdecode(filename,retries-1)
-                            else: err=1
+                        except: err=1
                         del imbuffer
                     else: err=1
                 except: err=1
                 if err: msg=_('BPG decoding error!\n')
         else: msg=_('File')+' \"%s\" '%filename+_('is not a BPG-File!')
-        if msg and retries==2:
+        if msg:
             wx.PostEvent(self,ShowEvent(SE_EVT_TYPE,-1,value=msg))
             if self.img:
                 del self.img
@@ -328,12 +353,12 @@ class DFrame(wx.Frame):
                 return self.bitmapfrompil(self.img)
         return None
     def _showimage(self,filename):
-        filename=__(filename,self.codepage)
         if len(filename) and self.bpgdecode(filename):
             if len(self.filelist)==0:
                 self.filelist=self.getfilelist(dirname(realpath(filename)))
                 self.index=0
                 while(True):
+                    if self.index>=len(self.filelist): break
                     if self.filelist[self.index]==realpath(filename): break
                     else: self.index+=1
                     if self.index>=len(self.filelist): break
@@ -357,8 +382,6 @@ class DFrame(wx.Frame):
             try:
                 if access(fname,R_OK) and isfile(fname) and\
                     fname[-4:].lower()=='.bpg':
-                    if type(fname) is unicode:
-                        fname=fname.encode(self.codepage)
                     filelist.append(fname)
             except: pass
         return filelist
@@ -387,15 +410,6 @@ class DFrame(wx.Frame):
         self.fifo=''
         self.mpos=None
         self.dlock=Lock()
-        t,self.fifo=mkstemp(suffix='.rgb',prefix='')
-        close(t)
-        remove(self.fifo)
-        try: mkfifo(self.fifo,0o766)
-        except:
-            msg=_('Unable to create FIFO file!')
-            print msg
-            errmsgbox(msg)
-            exit()
         self.filelist=[]
         self.index=0
         self.SetDoubleBuffered(True)
@@ -540,8 +554,9 @@ class DFrame(wx.Frame):
                 if status==wx.ID_OK:
                     self.stitle(_('Loading...'))
                     self.filelist=[]
-                    self.showimage(openFileDialog.GetPath())
+                    filename=openFileDialog.GetPath()
                     openFileDialog.Destroy()
+                    self.showimage(filename)
                 return
             if keycode==ord('S') and self.img:
                 saveFileDialog=wx.FileDialog(self,_("Save BPG file as PNG file"),\
@@ -552,7 +567,6 @@ class DFrame(wx.Frame):
                 if status==wx.ID_CANCEL: return
                 if status==wx.ID_OK:
                     dst=saveFileDialog.GetPath()
-                    dst=__(dst,self.codepage)
                     if dst[-4:].lower()!='.png': dst+='.png'
                     ttitle=self.Title
                     self.stitle(_('Saving PNG file...'))
@@ -572,7 +586,6 @@ class DFrame(wx.Frame):
                 if status==wx.ID_OK:
                     dst=saveFileDialog.GetPath()
                     try:
-                        dst=__(dst,self.codepage)
                         if exists(dst) and\
                             abspath(self.filelist[self.index])!=dst: remove(dst)
                         copyfile(self.filelist[self.index],dst)
@@ -718,31 +731,30 @@ class DFrame(wx.Frame):
                         else: self.deftitle()
                 return
         event.Skip()
-    def __del__(self):
-        if exists(self.fifo):
-            try: remove(self.fifo)
-            except: pass
 
 class bpgframe(wx.App):
     def BringWindowToFront(self):
-        try:
-            self.GetTopWindow().Raise()
-        except:
-            pass
+        try: self.GetTopWindow().Raise()
+        except: pass
     def OnActivate(self, event):
-        if event.GetActive():
-            self.BringWindowToFront()
+        if event.GetActive(): self.BringWindowToFront()
         event.Skip()
+    def OnInit(self):
+        return True
+    def MacOpenFile(self,filename):
+        if hasattr(self,'frame'):
+            self.BringWindowToFront()
+            self.frame.showimage(self.frame.checkpath(filename))
     def MacReopenApp(self):
         self.BringWindowToFront()
     def __init__(self,parent,filename):
         super(bpgframe,self).__init__(parent)
-        frame=DFrame(None,filename)
-        self.SetTopWindow(frame)
+        self.frame=DFrame(None,filename)
+        self.SetTopWindow(self.frame)
         self.SetExitOnFrameDelete(True)
         self.Bind(wx.EVT_ACTIVATE_APP,self.OnActivate)
-        wx.CallAfter(frame.Show)
-        wx.CallAfter(frame.Raise)
+        wx.CallAfter(self.frame.Show)
+        wx.CallAfter(self.frame.Raise)
 
 if __name__=='__main__':
     wxapp=True
