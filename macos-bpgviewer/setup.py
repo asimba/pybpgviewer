@@ -18,8 +18,8 @@ OPTIONS = {
         'CFBundleDisplayName': APP_NAME,
         'CFBundleGetInfoString': 'Viewer for BPG images',
         'CFBundleIdentifier': "org.asimbarsky.osx.bpgviewer",
-        'CFBundleVersion': "1.25.0",
-        'CFBundleShortVersionString': "1.25.0",
+        'CFBundleVersion': "1.26.0",
+        'CFBundleShortVersionString': "1.26.0",
         'NSHumanReadableCopyright': u"Copyright (c) 2018, Alexey Simbarsky, All Rights Reserved",
         'NSQuitAlwaysKeepsWindows': False,
         'CFBundleDocumentTypes': [
