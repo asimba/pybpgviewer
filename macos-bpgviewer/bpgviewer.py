@@ -428,7 +428,6 @@ class DFrame(wx.Frame):
         self.sizer.AddGrowableRow(0)
         self.sizer.Add(self.panel,1,wx.ALIGN_CENTER,0)
         self.SetSizer(self.sizer)
-        self.showimage(title)
         self.bitmap.Bind(wx.EVT_KEY_DOWN,self.keydown)
         self.panel.Bind(wx.EVT_MOUSE_EVENTS,self.drag)
         self.bitmap.Bind(wx.EVT_MOTION,self.drag)
@@ -439,6 +438,7 @@ class DFrame(wx.Frame):
         self.Layout()
         self.Center()
         self.panel.SetFocus()
+        wx.CallLater(1000,self.showimage,title)
     def loadindex(self,old):
         if self.index!=old:
             self.stitle(_('Loading...'))
