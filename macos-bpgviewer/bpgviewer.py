@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 '''
 Simple BPG Image viewer.
@@ -119,6 +119,7 @@ load(t,(\
 ("⌘R - rotate 90 degrees clockwise\n","ru_RU","⌘R - поворот на 90 градусов по часовой стрелке\n"),\
 ("⌘L - rotate 90 degrees counterclockwise\n","ru_RU","⌘L - поворот на 90 градусов против часовой стрелки\n"),\
 ("⌘F - toggle full screen mode\n","ru_RU","⌘F - включить/выключить полноэкранный режим\n"),\
+("⌘T - toggle 'stay on top' mode\n","ru_RU","⌘T - включить/выключить режим 'поверх остальных'\n"),\
 ("⌘Left,Home - jump to the first image in folder\n","ru_RU","⌘Left,Home - перейти к первому изображению в папке\n"),\
 ("⌘Right,End - jump to the last image in folder\n","ru_RU","⌘Right,End - перейти к последнему изображению в папке\n"),\
 ("+ - zoom in (up to 100%)\n","ru_RU","+ - увеличить (не более чем до 100%)\n"),\
@@ -602,6 +603,14 @@ class DFrame(wx.Frame):
                 return
             if keycode in [wx.WXK_RIGHT,wx.WXK_NUMPAD_RIGHT]:
                 self.last()
+                return
+            if keycode==ord('T'):
+                style=self.GetWindowStyle()
+                if wx.STAY_ON_TOP&style:
+                    self.SetWindowStyle(style&~wx.STAY_ON_TOP)
+                else: self.SetWindowStyle(style|wx.STAY_ON_TOP)
+                self.Refresh()
+                self.Raise()
                 return
         else:
             if keycode==wx.WXK_HOME:
