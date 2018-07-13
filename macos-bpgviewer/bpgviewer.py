@@ -654,6 +654,7 @@ class DFrame(wx.Frame):
                 _('⌘R - rotate 90 degrees clockwise\n')+\
                 _('⌘L - rotate 90 degrees counterclockwise\n')+\
                 _('⌘F - toggle full screen mode\n')+\
+                _('⌘T - toggle \'stay on top\' mode\n')+\
                 _('⌘Left,Home - jump to the first image in folder\n')+\
                 _('⌘Right,End - jump to the last image in folder\n')+\
                 _('+ - zoom in (up to 100%)\n')+\
