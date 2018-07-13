@@ -35,7 +35,7 @@ from math import floor
 from struct import unpack
 from platform import system
 from threading import Thread,Lock
-import locale,pickle,base64,zlib
+import locale
 
 if system()=="Windows":
     osflag=False
@@ -67,50 +67,65 @@ class translator():
 
 t=translator()
 
-def load_voc(str):
-    if version_info[0]>2:
-        return pickle.loads(zlib.decompress(base64.decodestring(\
-            bytes(str,'utf-8'))))
+def add(tr,key,language,translation):
+    if key in tr.voc:
+        tr.voc[key][language]=translation
     else:
-        return pickle.loads(zlib.decompress(base64.decodestring(str)))
+        tr.voc[key]={language:translation}
 
-t.voc=load_voc("\
-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\
-1UX/+F9G8wii\
-")
+def load(tr,data):
+    if type(data)==tuple and len(data):
+        for l in data:
+            if type(l)==tuple and len(l)==3:
+                add(tr,l[0],l[1],l[2])
+            else:
+                return
+
+load(t,(\
+("Please install","ru_RU","Пожалуйста, установите"),\
+("or higher","ru_RU","или новее"),\
+("Under Debian or Ubuntu you may try","ru_RU","В Debian или Ubuntu Вы можете попробовать следующую команду"),\
+("BPG decoder not found!\n","ru_RU","BPG декодер не найден!\n"),\
+("BPG decoding error!\n","ru_RU","Ошибка при декодировании файла!\n"),\
+("Unable to open ","ru_RU","Невозможно открыть файл "),\
+("File","ru_RU","Файл"),("is not a BPG-File!","ru_RU","не является файлом в формате BPG!"),\
+("Press Ctrl+O to open BPG file...","ru_RU","Нажмите Ctrl+O, чтобы открыть файл BPG..."),\
+("Unable to create FIFO file!","ru_RU","Невозможно создать файл FIFO!"),\
+("Loading...","ru_RU","Загрузка..."),\
+("Rotating...","ru_RU","Поворот..."),\
+("This is BPG image file viewer. Hot keys:\n","ru_RU","Просмотр изображений в формате BPG. Клавиатурные сочетания:\n"),\
+("Esc - close\n","ru_RU","Esc - выход\n"),\
+("Ctrl+O - open BPG image file\n","ru_RU","Ctrl+O - открыть файл\n"),\
+("Ctrl+S - save a copy of the opened file as a PNG file\n","ru_RU","Ctrl+S - сохранить копию изображения в формате PNG\n"),\
+("Ctrl+C - save a copy of the opened file\n","ru_RU","Ctrl+C - сохранить копию исходного файла\n"),\
+("Ctrl+R - rotate 90 degrees clockwise\n","ru_RU","Ctrl+R - поворот на 90 градусов по часовой стрелке\n"),\
+("Ctrl+L - rotate 90 degrees counterclockwise\n","ru_RU","Ctrl+L - поворот на 90 градусов против часовой стрелки\n"),\
+("Ctrl+F - toggle full screen mode\n","ru_RU","Ctrl+F - включить/выключить полноэкранный режим\n"),\
+("Ctrl+T - toggle 'stay on top' mode\n","ru_RU","Ctrl+T - включить/выключить режим 'поверх остальных'\n"),\
+("Ctrl+Left,Home - jump to the first image in folder\n","ru_RU","Ctrl+Left,Home - перейти к первому изображению в папке\n"),\
+("Ctrl+Right,End - jump to the last image in folder\n","ru_RU","Ctrl+Right,End - перейти к последнему изображению в папке\n"),\
+("+ - zoom in (up to 100%)\n","ru_RU","+ - увеличить (не более чем до 100%)\n"),\
+("- - zoom out (down to the smallest available size)\n","ru_RU","- - уменьшить (до минимального доступного размера)\n"),\
+("* - zoom out to fit window area\n","ru_RU","* - уменьшить до размеров по умолчанию\n"),\
+("Left,Up,Right,Down - move over the scaled image\n","ru_RU","Left,Up,Right,Down - перемещение увеличенного изображения в окне просмотра\n"),\
+("PgUp,Backspace,A,S - view previous file\n","ru_RU","PgUp,Backspace,A,S - перейти к предыдущему файлу в директории\n"),\
+("PgDown,Return,D,W - view next file\n","ru_RU","PgDown,Return,D,W - перейти к следующему файлу в директории\n"),\
+("Delete - delete current file\n","ru_RU","Delete - удалить текущий файл\n"),\
+("Help","ru_RU","Помощь"),\
+("Delete file","ru_RU","Удалить файл"),\
+("File deletion!","ru_RU","Удаление файла"),\
+("Unable to delete:","ru_RU","Невозможно удалить:"),\
+("Open BPG file","ru_RU","Открыть файл BPG"),\
+("BPG files","ru_RU","Файлы BPG"),\
+("Save BPG file as PNG file","ru_RU","Сохранить копию изображения в формате PNG"),\
+("PNG files","ru_RU","Файлы PNG"),\
+("Saving PNG file...","ru_RU","Сохранение копии файла (PNG)..."),\
+("Unable to save","ru_RU","Невозможно сохранить файл"),\
+("Save a copy...","ru_RU","Сохранение копии файла..."),\
+("Zooming in...","ru_RU","Увеличение..."),\
+("Zooming out...","ru_RU","Уменьшение..."),
+("Error!","ru_RU","Ошибка!"),\
+))
 
 def _(s):
     return t.find(s)
@@ -710,6 +725,14 @@ class DFrame(wx.Frame):
             if keycode in [wx.WXK_RIGHT,wx.WXK_NUMPAD_RIGHT]:
                 self.last()
                 return
+            if keycode==ord('T'):
+                style=self.GetWindowStyle()
+                if wx.STAY_ON_TOP&style:
+                    self.SetWindowStyle(style&~wx.STAY_ON_TOP)
+                else: self.SetWindowStyle(style|wx.STAY_ON_TOP)
+                self.Refresh()
+                self.Raise()
+                return
         else:
             if keycode==wx.WXK_HOME:
                 self.first()
@@ -752,6 +775,7 @@ class DFrame(wx.Frame):
                 _('Ctrl+R - rotate 90 degrees clockwise\n')+\
                 _('Ctrl+L - rotate 90 degrees counterclockwise\n')+\
                 _('Ctrl+F - toggle full screen mode\n')+\
+                _('Ctrl+T - toggle \'stay on top\' mode\n')+\
                 _('Ctrl+Left,Home - jump to the first image in folder\n')+\
                 _('Ctrl+Right,End - jump to the last image in folder\n')+\
                 _('+ - zoom in (up to 100%)\n')+\
