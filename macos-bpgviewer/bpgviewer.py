@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+﻿#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 '''
 Simple BPG Image viewer.
@@ -100,49 +100,69 @@ def load(tr,data):
                 return
 
 load(t,(\
-("Please install","ru_RU","Пожалуйста, установите"),\
-("or higher","ru_RU","или новее"),\
-("Under Debian or Ubuntu you may try","ru_RU","В Debian или Ubuntu Вы можете попробовать следующую команду"),\
-("BPG decoder not found!\n","ru_RU","BPG декодер не найден!\n"),\
-("BPG decoding error!\n","ru_RU","Ошибка при декодировании файла!\n"),\
-("Unable to open ","ru_RU","Невозможно открыть файл "),\
-("File","ru_RU","Файл"),("is not a BPG-File!","ru_RU","не является файлом в формате BPG!"),\
-("Press ⌘O to open BPG file...","ru_RU","Нажмите ⌘O, чтобы открыть файл BPG..."),\
-("Unable to create FIFO file!","ru_RU","Невозможно создать файл FIFO!"),\
-("Loading...","ru_RU","Загрузка..."),\
-("Rotating...","ru_RU","Поворот..."),\
-("This is BPG image file viewer. Hot keys:\n","ru_RU","Просмотр изображений в формате BPG. Клавиатурные сочетания:\n"),\
-("Esc - close\n","ru_RU","Esc - выход\n"),\
-("⌘O - open BPG image file\n","ru_RU","⌘O - открыть файл\n"),\
-("⌘S - save a copy of the opened file as a PNG file\n","ru_RU","⌘S - сохранить копию изображения в формате PNG\n"),\
-("⌘C - save a copy of the opened file\n","ru_RU","⌘C - сохранить копию исходного файла\n"),\
-("⌘R - rotate 90 degrees clockwise\n","ru_RU","⌘R - поворот на 90 градусов по часовой стрелке\n"),\
-("⌘L - rotate 90 degrees counterclockwise\n","ru_RU","⌘L - поворот на 90 градусов против часовой стрелки\n"),\
-("⌘F - toggle full screen mode\n","ru_RU","⌘F - включить/выключить полноэкранный режим\n"),\
-("⌘T - toggle 'stay on top' mode\n","ru_RU","⌘T - включить/выключить режим 'поверх остальных'\n"),\
-("⌘Left,Home - jump to the first image in folder\n","ru_RU","⌘Left,Home - перейти к первому изображению в папке\n"),\
-("⌘Right,End - jump to the last image in folder\n","ru_RU","⌘Right,End - перейти к последнему изображению в папке\n"),\
-("+ - zoom in (up to 100%)\n","ru_RU","+ - увеличить (не более чем до 100%)\n"),\
-("- - zoom out (down to the smallest available size)\n","ru_RU","- - уменьшить (до минимального доступного размера)\n"),\
-("* - zoom out to fit window area\n","ru_RU","* - уменьшить до размеров по умолчанию\n"),\
-("Left,Up,Right,Down - move over the scaled image\n","ru_RU","Left,Up,Right,Down - перемещение увеличенного изображения в окне просмотра\n"),\
-("PgUp,Backspace,A,S - view previous file\n","ru_RU","PgUp,Backspace,A,S - перейти к предыдущему файлу в директории\n"),\
-("PgDown,Return,D,W - view next file\n","ru_RU","PgDown,Return,D,W - перейти к следующему файлу в директории\n"),\
-("Delete - delete current file\n","ru_RU","Delete - удалить текущий файл\n"),\
-("Help","ru_RU","Помощь"),\
-("Delete file","ru_RU","Удалить файл"),\
-("File deletion!","ru_RU","Удаление файла"),\
-("Unable to delete:","ru_RU","Невозможно удалить:"),\
-("Open BPG file","ru_RU","Открыть файл BPG"),\
-("BPG files","ru_RU","Файлы BPG"),\
-("Save BPG file as PNG file","ru_RU","Сохранить копию изображения в формате PNG"),\
-("PNG files","ru_RU","Файлы PNG"),\
-("Saving PNG file...","ru_RU","Сохранение копии файла (PNG)..."),\
-("Unable to save","ru_RU","Невозможно сохранить файл"),\
-("Save a copy...","ru_RU","Сохранение копии файла..."),\
-("Zooming in...","ru_RU","Увеличение..."),\
-("Zooming out...","ru_RU","Уменьшение..."),
-("Error!","ru_RU","Ошибка!"),\
+    ("Please install","ru_RU","Пожалуйста, установите"),\
+    ("or higher","ru_RU","или новее"),\
+    ("Under Debian or Ubuntu you may try","ru_RU",
+        "В Debian или Ubuntu Вы можете попробовать следующую команду"),\
+    ("BPG decoder not found!\n","ru_RU","BPG декодер не найден!\n"),\
+    ("BPG decoding error!\n","ru_RU","Ошибка при декодировании файла!\n"),\
+    ("Unable to open ","ru_RU","Невозможно открыть файл "),\
+    ("File","ru_RU","Файл"),("is not a BPG-File!","ru_RU",
+        "не является файлом в формате BPG!"),\
+    ("Press ⌘O to open BPG file...","ru_RU",
+        "Нажмите ⌘O, чтобы открыть файл BPG..."),\
+    ("Unable to create FIFO file!","ru_RU","Невозможно создать файл FIFO!"),\
+    ("Loading...","ru_RU","Загрузка..."),\
+    ("Rotating...","ru_RU","Поворот..."),\
+    ("This is BPG image file viewer. Hot keys:\n","ru_RU",
+        "Просмотр изображений в формате BPG. Клавиатурные сочетания:\n"),\
+    ("Esc - close\n","ru_RU","Esc - выход\n"),\
+    ("⌘O - open BPG image file\n","ru_RU","⌘O - открыть файл\n"),\
+    ("⌘S - save a copy of the opened file as a PNG file\n","ru_RU",
+        "⌘S - сохранить копию изображения в формате PNG\n"),\
+    ("⌘C - save a copy of the opened file\n","ru_RU",
+        "⌘C - сохранить копию исходного файла\n"),\
+    ("⌘R - rotate 90 degrees clockwise\n","ru_RU",
+        "⌘R - поворот на 90 градусов по часовой стрелке\n"),\
+    ("⌘L - rotate 90 degrees counterclockwise\n","ru_RU",
+        "⌘L - поворот на 90 градусов против часовой стрелки\n"),\
+    ("⌘F - toggle full screen mode\n","ru_RU",
+        "⌘F - включить/выключить полноэкранный режим\n"),\
+    ("⌘T - toggle 'stay on top' mode\n","ru_RU",
+        "⌘T - включить/выключить режим 'поверх остальных'\n"),\
+    ("⌘Left,Home - jump to the first image in folder\n","ru_RU",
+        "⌘Left,Home - перейти к первому изображению в папке\n"),\
+    ("⌘Right,End - jump to the last image in folder\n","ru_RU",
+        "⌘Right,End - перейти к последнему изображению в папке\n"),\
+    ("+ - zoom in (up to 100%)\n","ru_RU",
+        "+ - увеличить (не более чем до 100%)\n"),\
+    ("- - zoom out (down to the smallest available size)\n","ru_RU",
+        "- - уменьшить (до минимального доступного размера)\n"),\
+    ("* - zoom out to fit window area\n","ru_RU",
+        "* - уменьшить до размеров по умолчанию\n"),\
+    ("Left,Up,Right,Down - move over the scaled image\n","ru_RU",
+        "Left,Up,Right,Down - перемещение увеличенного изображения в окне просмотра\n"),\
+    ("PgUp,Backspace,A,S - view previous file\n","ru_RU",
+        "PgUp,Backspace,A,S - перейти к предыдущему файлу в директории\n"),\
+    ("PgDown,Return,D,W - view next file\n","ru_RU",
+        "PgDown,Return,D,W - перейти к следующему файлу в директории\n"),\
+    ("Delete - delete current file\n","ru_RU",
+        "Delete - удалить текущий файл\n"),\
+    ("Help","ru_RU","Помощь"),\
+    ("Delete file","ru_RU","Удалить файл"),\
+    ("File deletion!","ru_RU","Удаление файла"),\
+    ("Unable to delete:","ru_RU","Невозможно удалить:"),\
+    ("Open BPG file","ru_RU","Открыть файл BPG"),\
+    ("BPG files","ru_RU","Файлы BPG"),\
+    ("Save BPG file as PNG file","ru_RU",
+        "Сохранить копию изображения в формате PNG"),\
+    ("PNG files","ru_RU","Файлы PNG"),\
+    ("Saving PNG file...","ru_RU","Сохранение копии файла (PNG)..."),\
+    ("Unable to save","ru_RU","Невозможно сохранить файл"),\
+    ("Save a copy...","ru_RU","Сохранение копии файла..."),\
+    ("Zooming in...","ru_RU","Увеличение..."),\
+    ("Zooming out...","ru_RU","Уменьшение..."),
+    ("Error!","ru_RU","Ошибка!"),\
 ))
 
 def _(s):
@@ -182,7 +202,7 @@ class GenBitmap(wx.Panel):
         self.SetInitialSize((bitmap.GetWidth(),bitmap.GetHeight()))
         self.Refresh()
     def GetBitmap(self): return self._bitmap
-    def OnPaint(self, event):
+    def OnPaint(self,event):
         dc=wx.PaintDC(self)
         if self._clear: dc.Clear()
         if self._bitmap:
@@ -220,7 +240,9 @@ class FileDropTarget(wx.FileDropTarget):
 class DFrame(wx.Frame):
     def bpgdecode(self,filename):
         msg=None
-        cmd='"'+self.bpgpath+'" -o '
+        cmd='"'+self.bpgpath+'"'
+        self.frames_index=0
+        if len(self.frames): self.frames=[]
         if self.img:
             del self.img
             self.img=None
@@ -236,31 +258,56 @@ class DFrame(wx.Frame):
                     else: imbuffer=b''
                     t,tmp=mkstemp(suffix='.rgb',prefix='')
                     close(t)
-                    fifo=osopen(tmp,O_RDONLY|O_NONBLOCK)
-                    cmd+=tmp+' "'+realpath(filename)+'" >/dev/null 2>&1'
+                    cmd+=' "'+realpath(filename)+'" '+tmp+' >/dev/null 2>&1'
                     f=Popen(cmd,shell=True,stdin=None,stdout=None,stderr=None)
+                    f.wait()
+                    fifo=osopen(tmp,O_RDONLY|O_NONBLOCK)
                     if fifo:
                         while True:
-                            if f.poll()!=None: break;
                             try: data=osread(fifo,16777216)
                             except OSError as e:
                                 if e.errno==errno.EAGAIN or\
-                                    e.errno==errno.EWOULDBLOCK: data=''
+                                    e.errno==errno.EWOULDBLOCK:
+                                        data=''
+                                        continue
                                 else: raise
                             if len(data): imbuffer+=data
+                            else: break
                         osclose(fifo)
                     if exists(tmp):
                         try: remove(tmp)
                         except: pass
                     if len(imbuffer):
-                        if imbuffer[0]==('a' if version_info[0]<3 else 97):
-                           mode='RGBA'
-                        else: mode='RGB'
-                        x,=unpack("i",imbuffer[1:5])
-                        y,=unpack("i",imbuffer[5:9])
-                        self.img=Image.frombytes(mode,(x,y),imbuffer[9:])
-                        try: self.img=Image.frombytes(mode,(x,y),imbuffer[9:])
-                        except: err=1
+                        x,=unpack("i",imbuffer[0:4])
+                        y,=unpack("i",imbuffer[4:8])
+                        n,=unpack("i",imbuffer[8:12])
+                        d,=unpack("i",imbuffer[12:16])
+                        if n==0 and d==1:
+                            try:
+                                self.img=Image.frombytes('RGBA',(x,y),
+                                    imbuffer[16:])
+                            except: err=1
+                        else:
+                            self.scale=100.0
+                            self.autoscale=self.scale
+                            self.bitmap_text=str(x)+'x'+str(y)
+                            self.imginfo='%.2f'%self.scale+'%@'+self.bitmap_text
+                            ishift=8
+                            dr=n*1000/d
+                            while True:
+                                try:
+                                    n,=unpack("i",imbuffer[ishift:ishift+4])
+                                    ishift+=4
+                                    d,=unpack("i",imbuffer[ishift:ishift+4])
+                                    ishift+=4
+                                except: break
+                                try:
+                                    img=Image.frombytes('RGBA',(x,y),
+                                        imbuffer[ishift:])
+                                except: break
+                                ishift+=(x*y*4)
+                                self.frames.append([self.bitmapfrompil(img),n*1000/d])
+                            else: err=1
                         del imbuffer
                     else: err=1
                 except: err=1
@@ -284,37 +331,58 @@ class DFrame(wx.Frame):
         cc=self.GetClientSize()
         return cr[2]-cr[0]-cw[0]+cc[0],cr[3]-cr[1]-cw[1]+cc[1]
     def bitmapfrompil(self,img):
-        if img.mode[-1]=='A':
-            return wx.Bitmap.FromBufferRGBA(img.size[0],\
-                img.size[1], img.convert("RGBA").tobytes())
+        if wx.VERSION[0]<4:
+            return wx.BitmapFromBufferRGBA(img.size[0],\
+                img.size[1],img.convert("RGBA").tobytes())
         else:
-            return wx.Bitmap.FromBuffer(img.size[0],img.size[1],\
-                img.convert("RGB").tobytes())
-    def scalebitmap(self,width,height):
-        if self.img:
-            return self.bitmapfrompil(self.img.resize((int(width),\
+            return wx.Bitmap.FromBufferRGBA(img.size[0],\
+                img.size[1],img.convert("RGBA").tobytes())
+    def scaleframe(self,img,width,height):
+        if img:
+            return self.bitmapfrompil(img.resize((int(width),\
                 int(height)),Image.ANTIALIAS))
         else: return None
+    def scalebitmap(self,width,height):
+        if self.img:
+            return self.scaleframe(self.img,width,height)
+        else: return None
+    def showsingleframe(self,bitmap):
+        self.bitmap.SetBitmap(bitmap)
+        if wx.VERSION[0]<4: self.bitmap.SetToolTipString(self.imginfo)
+        else: self.bitmap.SetToolTip(self.imginfo)
+        x,y=bitmap.GetSize()
+        self.panel.SetVirtualSize((x,y))
+        self.panel.SetScrollbars(1,1,x,y)
+        self.panel.SetScrollRate(1,1)
+        cx,cy=self.getcsize()
+        if not(self.IsMaximized()) and not(self.IsFullScreen()) and\
+            x<=cx and y<=cy:
+            self.panel.SetInitialSize(size=(x,y))
+            self.panel.SetClientSize((x,y))
+            self.Layout()
+            self.Fit()
+        else: self.Layout()
+    def shownextframe(self,event):
+        if len(self.frames):
+            self.frames_index+=1
+            if self.frames_index==len(self.frames): self.frames_index=0
+            self.showsingleframe(self.frames[self.frames_index][0])
+            self.frame_timer.Start(self.frames[self.frames_index][1],
+                wx.TIMER_ONE_SHOT)
+    def showframes(self):
+        self.bitmap._clear=True
+        if len(self.frames)==0: self.showempty()
+        else:
+            bitmap=self.frames[0][0]
+            self.showsingleframe(bitmap)
+            self.frame_timer.Start(self.frames[self.frames_index][1],
+                wx.TIMER_ONE_SHOT)
     def showbitmap(self,bitmap):
         self.bitmap._clear=True
         if bitmap==None: self.showempty()
         else:
-            self.bitmap.SetBitmap(bitmap)
             self.imginfo='%.2f'%self.scale+'%@'+self.bitmap_text
-            self.bitmap.SetToolTip(self.imginfo)
-            x,y=bitmap.GetSize()
-            self.panel.SetVirtualSize((x,y))
-            self.panel.SetScrollbars(1,1,x,y)
-            self.panel.SetScrollRate(1,1)
-            cx,cy=self.getcsize()
-            if not(self.IsMaximized()) and not(self.IsFullScreen()) and\
-                x<=cx and y<=cy:
-                self.panel.SetInitialSize(size=(x,y))
-                self.panel.SetClientSize((x,y))
-                self.Layout()
-                self.Fit()
-                self.Center()
-            else: self.Layout()
+            self.showsingleframe(bitmap)
     def emptybitmap(self):
         buffer=wx.Bitmap(400,300)
         dc=wx.BufferedDC(None,buffer)
@@ -323,6 +391,7 @@ class DFrame(wx.Frame):
         dc.Destroy()
         return buffer
     def showempty(self):
+        if len(self.frames): self.frames=[]
         if self.img:
             try: del self.img
             except: pass
@@ -367,13 +436,19 @@ class DFrame(wx.Frame):
     def _evt_showimage(self,evt):
         if evt.value: errmsgbox(evt.value)
         else:
-            self.showbitmap(self.autoscaled())
+            if self.img:
+                self.showbitmap(self.autoscaled())
+                wx.CallAfter(self.Center)
+            elif len(self.frames):
+                self.showframes()
+                wx.CallAfter(self.Center)
             if len(self.imginfo): self.stitle(self.filelist[self.index]+\
                 ' ('+self.imginfo+')')
             else: self.deftitle()
     def showimage(self,filename):
         if not self.dlock.acquire(False): return
         self.dlock.release()
+        if self.frame_timer.IsRunning(): self.frame_timer.Stop()
         self.dthread=DecodeThread(self,lambda: self._showimage(filename))
         self.dthread.start()
     def getfilelist(self,dirname):
@@ -407,6 +482,10 @@ class DFrame(wx.Frame):
         self.autoscale=100.0
         self.bitmap_text=''
         self.img=None
+        self.frames=[]
+        self.frames_index=0
+        self.frame_timer=wx.Timer(self)
+        self.Bind(wx.EVT_TIMER,self.shownextframe,self.frame_timer)
         self.imginfo=''
         self.fifo=''
         self.mpos=None
@@ -434,6 +513,7 @@ class DFrame(wx.Frame):
         self.bitmap.Bind(wx.EVT_MOUSE_EVENTS,self.drag)
         self.Bind(wx.EVT_SIZE,self.fresize)
         self.Bind(wx.EVT_ERASE_BACKGROUND,lambda e: None)
+        self.Bind(wx.EVT_CLOSE,self.OnClose)
         self.Bind(SE_EVT_BNDR,self._evt_showimage)
         self.Layout()
         self.Center()
@@ -519,7 +599,10 @@ class DFrame(wx.Frame):
             else: self.max=False
         self.Layout()
     def autoimg(self):
-        if self.scale==self.autoscale:
+        if len(self.frames):
+            if self.frame_timer.IsRunning(): self.frame_timer.Stop()
+            wx.CallAfter(self.showframes)
+        elif self.scale==self.autoscale:
             self.showbitmap(self.autoscaled())
             if len(self.imginfo): self.stitle(self.filelist[self.index]+\
                 ' ('+self.imginfo+')')
@@ -577,7 +660,7 @@ class DFrame(wx.Frame):
                     except: errmsgbox(_('Unable to save')+' \"%s\"!'%dst)
                     self.stitle(ttitle)
                     return
-            if keycode==ord('C') and self.img:
+            if keycode==ord('C') and (self.img or len(self.frames)):
                 saveFileDialog=wx.FileDialog(self,_("Save a copy..."),"",\
                     basename(self.filelist[self.index])[:-4],\
                     _("BPG files")+" (*.bpg)|*.bpg",\
@@ -741,6 +824,11 @@ class DFrame(wx.Frame):
                         else: self.deftitle()
                 return
         event.Skip()
+    def OnClose(self,event):
+        if self.frame_timer.IsRunning(): self.frame_timer.Stop()
+        event.Skip()
+    def __del__(self):
+        if self.frame_timer.IsRunning(): self.frame_timer.Stop()
 
 class bpgframe(wx.App):
     def BringWindowToFront(self):
