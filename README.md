@@ -20,14 +20,15 @@ _Dependencies of the source script (viewer only):_
 ---
 _Notes:_  
 - large images will be scaled to fit screen area  
-- in Ubuntu 17.10 environment you can try [x86 package](https://github.com/asimba/pybpgviewer/releases/download/v1.25/bpgviewer-1.25-ubuntu-17.10-i386.deb) / [x86-64 package](https://github.com/asimba/pybpgviewer/releases/download/v1.25/bpgviewer-1.25-ubuntu-17.10-amd64.deb).  
-- in MS Windows (Windows 7/Windows 8.1/Windows 10 32/64) environment you can use [statically linked x86 package](https://github.com/asimba/pybpgviewer/releases/download/v1.25/bpgviewer-1.25-win32-portable.7z) / [statically linked x64 package](https://github.com/asimba/pybpgviewer/releases/download/v1.25/bpgviewer-1.25-win64-portable.7z) portable version or try the [x86 installer](https://github.com/asimba/pybpgviewer/releases/download/v1.25/bpgviewer-1.25-win32-setup.exe) / [x64 installer](https://github.com/asimba/pybpgviewer/releases/download/v1.25/bpgviewer-1.25-win64-setup.exe).  
-- in macOS 10.13 environment you can try [x86-64 package](https://github.com/asimba/pybpgviewer/releases/download/v1.25/bpgviewer-1.25-macos-10.13.dmg) (Note: to enable thumbnail generation in Finder you may have to reboot your system).  
+- basic support for animated images (zooming, rotating and exporting for animated images are not supported)  
+- in Ubuntu 17.10 environment you can try [x86 package](https://github.com/asimba/pybpgviewer/releases/download/v1.26/bpgviewer-1.26-ubuntu-17.10-i386.deb) / [x86-64 package](https://github.com/asimba/pybpgviewer/releases/download/v1.26/bpgviewer-1.26-ubuntu-17.10-amd64.deb).  
+- in MS Windows (Windows 7/Windows 8.1/Windows 10 32/64) environment you can use [statically linked x86 package](https://github.com/asimba/pybpgviewer/releases/download/v1.26/bpgviewer-1.26-win32-portable.7z) / [statically linked x64 package](https://github.com/asimba/pybpgviewer/releases/download/v1.26/bpgviewer-1.26-win64-portable.7z) portable version or try the [x86 installer](https://github.com/asimba/pybpgviewer/releases/download/v1.26/bpgviewer-1.26-win32-setup.exe) / [x64 installer](https://github.com/asimba/pybpgviewer/releases/download/v1.26/bpgviewer-1.26-win64-setup.exe).  
+- in macOS 10.13 environment you can try [x86-64 package](https://github.com/asimba/pybpgviewer/releases/download/v1.26/bpgviewer-1.26-macos-10.13.dmg) (Note: to enable thumbnail generation in Finder you may have to reboot your system).  
 - embedded translations: Russian,English  
 - thumbnails preview in Nautilus/Thunar (tested Ubuntu/Xubuntu 17.10/17.10 only)  
 - thumbnails preview in Dolphin (KDE 5) (tested Kubuntu 17.10) (don't forget to turn on BPG preview in Dolphin settings after package installation)  
 - thumbnails preview in Windows Explorer (for Windows Vista or higher)  
-- drag & drop support for files and folders (for Ubuntu and Windows)  
+- drag & drop support for files and folders  
 
 _Ubuntu/Xubuntu 17.10 Notes:_  
 * You may need to run "sudo apt-get -f install" after package installation.  
@@ -51,6 +52,7 @@ Ctrl-C | save a copy of the opened file
 Ctrl-R | rotate 90 degrees clockwise  
 Ctrl-L | rotate 90 degrees counterclockwise  
 Ctrl-F | toggle full screen mode  
+Ctrl-T | toggle 'stay  on  top' mode  
 Ctrl-Left,Home | jump to the first image in folder  
 Ctrl-Right,End | jump to the last image in folder  
 \+ | zoom in (up to 100%)  
