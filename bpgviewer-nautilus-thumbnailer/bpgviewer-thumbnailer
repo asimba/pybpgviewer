@@ -3,7 +3,7 @@
 '''
 Simple BPG Image viewer.
 
-Copyright (c) 2014-2016, Alexey Simbarsky
+Copyright (c) 2014-2018, Alexey Simbarsky
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -47,7 +47,6 @@ except: exit()
 def bpgthumbnail(ifile,ofile,size):
     cmd=join(dirname(realpath(argv[0])),'bpgdec')
     if not(isfile(cmd)): exit()
-    cmd+=' -o '
     if type(ifile) is unicode: ifile=ifile.encode(locale.getdefaultlocale()[1])
     if type(ofile) is unicode: ofile=ofile.encode(locale.getdefaultlocale()[1])
     if len(ifile)>4 and ifile[-4:].lower()=='.bpg':
@@ -60,7 +59,7 @@ def bpgthumbnail(ifile,ofile,size):
             imbuffer=''
             mkfifo(fifo,0700)
             ffifo=osopen(fifo,O_RDONLY|O_NONBLOCK)
-            cmd+=fifo+' "'+realpath(ifile)+'"'+' >/dev/null 2>&1'
+            cmd+=' "'+realpath(ifile)+'" '+fifo
             f=Popen(cmd,shell=True,stdin=None,stdout=None,stderr=None)
             if ffifo:
                 while True:
@@ -76,11 +75,9 @@ def bpgthumbnail(ifile,ofile,size):
             except: pass
             img=None
             if len(imbuffer):
-                if imbuffer[0]=='a': mode='RGBA'
-                else: mode='RGB'
-                x,=unpack("i",imbuffer[1:5])
-                y,=unpack("i",imbuffer[5:9])
-                img=Image.frombytes(mode,(x,y),imbuffer[9:])
+                x,=unpack("i",imbuffer[0:4])
+                y,=unpack("i",imbuffer[4:8])
+                img=Image.frombytes('RGBA',(x,y),imbuffer[16:])
                 del imbuffer
             else: raise RuntimeError()
             img.thumbnail(size,Image.ANTIALIAS)
