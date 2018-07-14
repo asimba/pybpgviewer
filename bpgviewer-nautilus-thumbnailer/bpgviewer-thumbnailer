@@ -57,7 +57,7 @@ def bpgthumbnail(ifile,ofile,size):
         remove(fifo)
         try:
             imbuffer=''
-            mkfifo(fifo,0700)
+            mkfifo(fifo,0o700)
             ffifo=osopen(fifo,O_RDONLY|O_NONBLOCK)
             cmd+=' "'+realpath(ifile)+'" '+fifo
             f=Popen(cmd,shell=True,stdin=None,stdout=None,stderr=None)
