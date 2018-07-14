@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 '''
 Simple BPG Image viewer.
@@ -750,7 +750,7 @@ class DFrame(wx.Frame):
                 wx.OK|wx.ICON_INFORMATION)
                 return
             if keycode in [wx.WXK_DELETE,wx.WXK_NUMPAD_DELETE]:
-                if len(self.filelist) and self.img:
+                if len(self.filelist) and (self.img or len(self.frames)):
                     if wx.MessageBox(_('Delete file')+' "'+\
                         self.filelist[self.index]+'"?',_('File deletion!'),\
                         wx.YES_NO|wx.ICON_WARNING|wx.NO_DEFAULT)==wx.YES:
