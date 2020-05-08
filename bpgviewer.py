@@ -1,9 +1,9 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 '''
 Simple BPG Image viewer.
 
-Copyright (c) 2014-2018, Alexey Simbarsky
+Copyright (c) 2014-2020, Alexey Simbarsky
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -55,14 +55,9 @@ class translator():
         self.voc={}
         self.locale=locale.getdefaultlocale()
     def find(self,key):
-        try: wxu=True if (wx.VERSION[0]>3 or osflag) else False
-        except: wxu=False
         if key in self.voc:
             if self.locale[0] in self.voc[key]:
-                if wxu: return self.voc[key][self.locale[0]]
-                else:
-                    return self.voc[key][self.locale[0]].encode(\
-                        self.locale[1])
+                return self.voc[key][self.locale[0]]
         return key
 
 t=translator()
@@ -146,7 +141,7 @@ load(t,(\
     ("Error!","ru_RU","Ошибка!")))
 
 def _(s):
-    return t.find(s)
+    return str(t.find(s))
 
 def __(s,codepage):
     if version_info[0]<3:
@@ -167,7 +162,7 @@ def errmsg(msg):
             except: pass
     else:
         import ctypes
-        MessageBox=ctypes.windll.user32.MessageBoxA
+        MessageBox=ctypes.windll.user32.MessageBoxW
         MessageBox(0,msg,_('Error!'),16)
 
 if not(osflag):
@@ -183,8 +178,7 @@ except:
     msg=_("Please install")+" wxPython 2.8 ("+_("or higher")+\
         ") (http://www.wxpython.org/)!\n"+\
         _("Under Debian or Ubuntu you may try")+":\n"\
-        "sudo aptitude install python-wxgtk2.8\n"+_("or")+"\n"+\
-        "sudo aptitude install python-wxgtk3.0"
+        "sudo apt install python3-wxgtk4.0"
     errmsg(msg)
     raise RuntimeError(msg)
 
@@ -197,8 +191,8 @@ except:
         _("or")+" Pillow 3.2.0 ("+_("or higher")+\
         ") (https://pillow.readthedocs.org/en/3.2.x/)!\n"+\
         _("Under Debian or Ubuntu you may try")+":\n"\
-        "sudo aptitude install python-imaging\n"+_("or")+"\n"+\
-        "sudo aptitude install python-pil"
+        "sudo apt install python-imaging\n"+_("or")+"\n"+\
+        "sudo apt install python-pil"
     errmsg(msg)
     raise RuntimeError(msg)
 
@@ -310,7 +304,6 @@ class FileDropTarget(wx.FileDropTarget):
 class DFrame(wx.Frame):
     def bpgdecode(self,filename):
         msg=None
-        cmd=self.bpgpath
         self.frames_index=0
         if len(self.frames): self.frames=[]
         if self.img:
@@ -324,22 +317,20 @@ class DFrame(wx.Frame):
             if not(msg):
                 err=0
                 try:
-                    imbuffer=''
+                    imbuffer=b''
                     if osflag:
                         fifo=osopen(self.fifo,O_RDONLY|O_NONBLOCK)
-                        cmd+=' "'+realpath(filename)+'" '+self.fifo+\
-                            ' >/dev/null 2>&1'
-                        f=Popen(cmd,shell=True,stdin=None,stdout=None,\
+                        f=Popen([self.bpgpath,realpath(filename),self.fifo],bufsize=0,shell=False,stdin=None,stdout=None,\
                             stderr=None)
                         if fifo:
                             while True:
-                                if f.poll()!=None: break;
                                 try: data=osread(fifo,16777216)
                                 except OSError as e:
                                     if e.errno==errno.EAGAIN or\
                                         e.errno==errno.EWOULDBLOCK: data=''
                                     else: raise
                                 if len(data): imbuffer+=data
+                                elif f.poll()!=None: break
                             osclose(fifo)
                     else:
                         si=STARTUPINFO()
@@ -351,8 +342,7 @@ class DFrame(wx.Frame):
                             win32pipe.PIPE_ACCESS_DUPLEX,
                             win32pipe.PIPE_TYPE_BYTE|win32pipe.PIPE_WAIT,
                             1,16777216,16777216,2000,None)
-                        cmd+=' "'+realpath(filename)+'" '+pname
-                        f=Popen(cmd,shell=False,stdin=None,stdout=None,\
+                        f=Popen([self.bpgpath,realpath(filename),pname],shell=False,stdin=None,stdout=None,\
                             stderr=None,bufsize=0,startupinfo=si)
                         win32pipe.ConnectNamedPipe(tpipe,None)
                         imbuffer=''
@@ -375,8 +365,7 @@ class DFrame(wx.Frame):
                         d,=unpack("i",imbuffer[12:16])
                         if n==0 and d==1:
                             try:
-                                self.img=Image.frombytes('RGBA',(x,y),
-                                    imbuffer[16:])
+                                self.img=Image.frombytes('RGBA',(x,y),imbuffer[16:])
                             except: err=1
                         else:
                             self.scale=100.0
@@ -393,8 +382,7 @@ class DFrame(wx.Frame):
                                     ishift+=4
                                 except: break
                                 try:
-                                    img=Image.frombytes('RGBA',(x,y),
-                                        imbuffer[ishift:])
+                                    img=Image.frombytes('RGBA',(x,y),imbuffer[ishift:])
                                 except: break
                                 ishift+=(x*y*4)
                                 self.frames.append([self.bitmapfrompil(img),n*1000/d])
@@ -666,7 +654,7 @@ class DFrame(wx.Frame):
                     dx=self.mpos[0]-pos[0]
                     dy=self.mpos[1]-pos[1]
                     self.panel.Scroll(self.panel.GetScrollPos(wx.HORIZONTAL)+\
-                        dx/px,self.panel.GetScrollPos(wx.VERTICAL)+dy/py)
+                        int(dx/px),self.panel.GetScrollPos(wx.VERTICAL)+int(dy/py))
                 return
             if event.LeftDown():
                 self.mpos=event.GetPosition()
