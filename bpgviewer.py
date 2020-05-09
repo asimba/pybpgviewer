@@ -26,15 +26,16 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 '''
 
 from sys import argv,exit,version_info
-from os import listdir,access,R_OK,stat,close,remove
+from os import listdir,access,R_OK,close,remove
 from os.path import exists,isfile,isdir,dirname,basename,realpath,join,abspath
 from tempfile import mkstemp
 from shutil import copyfile
-from subprocess import Popen,PIPE,STDOUT
+from subprocess import Popen
 from math import floor
 from struct import unpack
 from platform import system
 from threading import Thread,Lock
+from time import sleep
 import locale
 
 if system()=="Windows":
@@ -142,11 +143,6 @@ load(t,(\
 
 def _(s):
     return str(t.find(s))
-
-def __(s,codepage):
-    if version_info[0]<3:
-        if type(s) is unicode: s=s.encode(codepage)
-    return s
 
 def errmsg(msg):
     if osflag:
@@ -320,7 +316,8 @@ class DFrame(wx.Frame):
                     imbuffer=b''
                     if osflag:
                         fifo=osopen(self.fifo,O_RDONLY|O_NONBLOCK)
-                        f=Popen([self.bpgpath,realpath(filename),self.fifo],bufsize=0,shell=False,stdin=None,stdout=None,\
+                        f=Popen([self.bpgpath,realpath(filename),self.fifo],\
+                            bufsize=0,shell=False,stdin=None,stdout=None,\
                             stderr=None)
                         if fifo:
                             while True:
@@ -331,6 +328,7 @@ class DFrame(wx.Frame):
                                     else: raise
                                 if len(data): imbuffer+=data
                                 elif f.poll()!=None: break
+                                else: sleep(.1)
                             osclose(fifo)
                     else:
                         si=STARTUPINFO()
@@ -342,7 +340,8 @@ class DFrame(wx.Frame):
                             win32pipe.PIPE_ACCESS_DUPLEX,
                             win32pipe.PIPE_TYPE_BYTE|win32pipe.PIPE_WAIT,
                             1,16777216,16777216,2000,None)
-                        f=Popen([self.bpgpath,realpath(filename),pname],shell=False,stdin=None,stdout=None,\
+                        f=Popen([self.bpgpath,realpath(filename),pname],\
+                            shell=False,stdin=None,stdout=None,\
                             stderr=None,bufsize=0,startupinfo=si)
                         win32pipe.ConnectNamedPipe(tpipe,None)
                         imbuffer=''
@@ -504,7 +503,6 @@ class DFrame(wx.Frame):
                 return self.bitmapfrompil(self.img)
         return None
     def _showimage(self,filename):
-        filename=__(filename,self.codepage)
         if len(filename) and self.bpgdecode(filename):
             if len(self.filelist)==0:
                 self.filelist=self.getfilelist(dirname(realpath(filename)))
@@ -539,7 +537,6 @@ class DFrame(wx.Frame):
             try:
                 if access(fname,R_OK) and isfile(fname) and\
                     fname[-4:].lower()=='.bpg':
-                    fname=__(fname,self.codepage)
                     filelist.append(fname)
             except: pass
         return filelist
@@ -745,7 +742,6 @@ class DFrame(wx.Frame):
                 if status==wx.ID_CANCEL: return
                 if status==wx.ID_OK:
                     dst=saveFileDialog.GetPath()
-                    dst=__(dst,self.codepage)
                     if dst[-4:].lower()!='.png': dst+='.png'
                     ttitle=self.Title
                     self.stitle(_('Saving PNG file...'))
@@ -765,7 +761,6 @@ class DFrame(wx.Frame):
                 if status==wx.ID_OK:
                     dst=saveFileDialog.GetPath()
                     try:
-                        dst=__(dst,self.codepage)
                         if exists(dst) and\
                             abspath(self.filelist[self.index])!=dst: remove(dst)
                         copyfile(self.filelist[self.index],dst)
