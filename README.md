@@ -12,8 +12,8 @@ _Dependencies of the source script (viewer only):_
 
 ---  
 * patched version of [bpgdec](http://bellard.org/bpg/) (diff file supplied)  
-* [python 2.7.x](https://www.python.org/)  
-* [wxPython 3.0.x.x](http://www.wxpython.org/)  
+* [python 3.x.x](https://www.python.org/)  
+* [wxPython 4.x.x.x](http://www.wxpython.org/)  
 * [Python Imaging Library (PIL) 1.1.7](http://www.pythonware.com/products/pil/) (or [Pillow 3.x.x](https://pillow.readthedocs.org/) at Ubuntu/Xubuntu 16.04)  
 * [Python for Windows Extensions](http://sourceforge.net/projects/pywin32/) (for Windows version only)
 
@@ -22,15 +22,16 @@ _Notes:_
 - large images will be scaled to fit screen area  
 - basic support for animated images (zooming, rotating and exporting for animated images are not supported)  
 - in Ubuntu 17.10 environment you can try [x86 package](https://github.com/asimba/pybpgviewer/releases/download/v1.26/bpgviewer-1.26-ubuntu-17.10-i386.deb) / [x86-64 package](https://github.com/asimba/pybpgviewer/releases/download/v1.26/bpgviewer-1.26-ubuntu-17.10-amd64.deb).  
+- in Ubuntu 20.04 environment you can try [x86-64 package](https://github.com/asimba/pybpgviewer/releases/download/v1.26/bpgviewer-1.26-ubuntu-20.04-amd64.deb).  
 - in MS Windows (Windows 7/Windows 8.1/Windows 10 32/64) environment you can use [statically linked x86 package](https://github.com/asimba/pybpgviewer/releases/download/v1.26/bpgviewer-1.26-win32-portable.7z) / [statically linked x64 package](https://github.com/asimba/pybpgviewer/releases/download/v1.26/bpgviewer-1.26-win64-portable.7z) portable version or try the [x86 installer](https://github.com/asimba/pybpgviewer/releases/download/v1.26/bpgviewer-1.26-win32-setup.exe) / [x64 installer](https://github.com/asimba/pybpgviewer/releases/download/v1.26/bpgviewer-1.26-win64-setup.exe).  
 - in macOS 10.13 environment you can try [x86-64 package](https://github.com/asimba/pybpgviewer/releases/download/v1.26/bpgviewer-1.26-macos-10.13.dmg) (Note: to enable thumbnail generation in Finder you may have to reboot your system).  
 - embedded translations: Russian,English  
-- thumbnails preview in Nautilus/Thunar (tested Ubuntu/Xubuntu 17.10/17.10 only)  
-- thumbnails preview in Dolphin (KDE 5) (tested Kubuntu 17.10) (don't forget to turn on BPG preview in Dolphin settings after package installation)  
+- thumbnails preview in Nautilus/Thunar (tested Ubuntu/Xubuntu 17.10/20.04 only)  
+- thumbnails preview in Dolphin (KDE 5) (tested Kubuntu 17.10/20.04) (don't forget to turn on BPG preview in Dolphin settings after package installation)  
 - thumbnails preview in Windows Explorer (for Windows Vista or higher)  
 - drag & drop support for files and folders  
 
-_Ubuntu/Xubuntu 17.10 Notes:_  
+_Ubuntu/Xubuntu 17.10/20.04 Notes:_  
 * You may need to run "sudo apt-get -f install" after package installation.  
 
 _Linux Mint "Rafaela" (Mate) Notes:_  
