@@ -238,7 +238,7 @@ def errmsgbox(msg):
     if not(wxapp): app.Exit()
 
 def bpggetcmd():
-    binname='bpgdec'
+    binname='bpgviewer-bpgdec'
     if not osflag: binname+='.exe'
     bpgpath=join(dirname(realpath(argv[0])),binname)
     if not(isfile(bpgpath)):
