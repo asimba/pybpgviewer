@@ -1,7 +1,7 @@
 /*
 Copyright (c) 2011 Nick Schermer <nick@xfce.org>
 Copyright (c) 2012 Jannis Pohlmann <jannis@xfce.org>
-Copyright (c) 2015 Alexey Simbarsky <asimbarsky@gmail.com>
+Copyright (c) 2015-2020 Alexey Simbarsky <asimbarsky@gmail.com>
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License as
@@ -29,7 +29,7 @@ Boston, MA 02110-1301, USA.
 #include <tumbler/tumbler.h>
 #include <gdk-pixbuf/gdk-pixbuf.h>
 
-#include <libbpg.h>
+#include <libbpgdec.h>
 
 G_BEGIN_DECLS
 
@@ -148,46 +148,11 @@ static GdkPixbuf *scale_pixbuf(GdkPixbuf *source,gint dest_width,gint dest_heigh
 static void free_buffer(guchar *pixels,gpointer data){g_free (pixels);}
 
 static GdkPixbuf *gdkpixbuf_from_bpg(const char *filename){
-    uint8_t *buf;
-    BPGDecoderContext *img;
-    BPGImageInfo img_info_s,*img_info=&img_info_s;
-    FILE *f;
-    f=fopen(filename,"rb");
-    if(!f) return NULL;
-    fseek(f,0,SEEK_END);
-    int buf_len=ftell(f);
-    fseek(f,0,SEEK_SET);
-    buf=malloc(buf_len);
-    if(buf==NULL){
-      fclose(f);
-      return NULL;
-    }
-    if(fread(buf,1,buf_len,f)!=buf_len){
-      fclose(f);
-      free(buf);
-      return NULL;
-    }
-    fclose(f);
-    img=bpg_decoder_open();
-    if(bpg_decoder_decode(img,buf,buf_len)<0){
-      free(buf);
-      return NULL;
-    }
-    free(buf);
-    bpg_decoder_get_info(img,img_info);
-    guchar *pixdata=(guchar *)malloc(img_info->width*img_info->height*3);
-    if(pixdata==NULL) return NULL;
-    bpg_decoder_start(img,BPG_OUTPUT_FORMAT_RGB24);
-    int shift=img_info->width*3;
-    guchar *pixpntr=pixdata;
-    int y;
-    for (y=0;y<img_info->height;y++){
-        bpg_decoder_get_line(img,pixpntr);
-        pixpntr+=shift;
-    };
-    bpg_decoder_close(img);
-    GdkPixbuf *pixbuf=gdk_pixbuf_new_from_data(pixdata,GDK_COLORSPACE_RGB,0,8,img_info->width,img_info->height,shift,free_buffer,NULL);
-    return pixbuf;
+  int width=0,height=0;
+  guchar *pixdata=(guchar *)bpg_to_rgb(filename,&width,&height);
+  if(pixdata==NULL) return NULL;
+  GdkPixbuf *pixbuf=gdk_pixbuf_new_from_data(pixdata,GDK_COLORSPACE_RGB,0,8,width,height,width*3,free_buffer,NULL);
+  return pixbuf;
 }
 
 static void bpg_thumbnailer_create(TumblerAbstractThumbnailer *thumbnailer,GCancellable *cancellable, TumblerFileInfo *info){

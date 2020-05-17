@@ -48,7 +48,7 @@ tumbler_bpg_thumbnailer_la_LIBADD =					\
 	$(GDK_PIXBUF_LIBS)						\
 	$(GIO_LIBS)							\
 	$(GLIB_LIBS)							\
-	-lm -lbpg
+	-lm -lbpgdec
 
 tumbler_bpg_thumbnailer_la_DEPENDENCIES =				\
 	$(top_builddir)/tumbler/libtumbler-$(TUMBLER_VERSION_API).la

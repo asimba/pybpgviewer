@@ -3,6 +3,6 @@ Type=Service
 Name=BPG image files
 X-KDE-ServiceTypes=ThumbCreator
 MimeType=image/bpg;
-X-KDE-Library=bpgthumbnailer
+X-KDE-Library=bpg-thumbnailer
 CacheThumbnail=true
 IgnoreMaximumSize=true

@@ -17,7 +17,8 @@ WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 #include <strsafe.h>
 #include <Guiddef.h>
 #include <shlobj.h>
-#include <bpgdec.h>
+#include <stdint.h>
+#include "bpgdec.h"
 #pragma comment(lib,"Shlwapi.lib")
 #pragma comment(lib,"bpgdec.lib")
 

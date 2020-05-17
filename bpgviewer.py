@@ -25,29 +25,24 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 '''
 
-from sys import argv,exit,version_info
+from sys import argv,exit
 from os import listdir,access,R_OK,close,remove
-from os.path import exists,isfile,isdir,dirname,basename,realpath,join,abspath
+from os.path import exists,isfile,isdir,dirname,basename,realpath,\
+                    join,abspath
 from tempfile import mkstemp
 from shutil import copyfile
-from subprocess import Popen
 from math import floor
 from struct import unpack
 from platform import system
 from threading import Thread,Lock
-from time import sleep
+from ctypes import *
+from ctypes.util import find_library
 import locale
 
 if system()=="Windows":
     osflag=False
-    from subprocess import STARTUPINFO
 else:
     osflag=True
-    from os import mkfifo,O_RDONLY,O_NONBLOCK
-    from os import open as osopen
-    from os import read as osread
-    from os import close as osclose
-    import errno
 
 wxapp=False
 
@@ -161,14 +156,6 @@ def errmsg(msg):
         MessageBox=ctypes.windll.user32.MessageBoxW
         MessageBox(0,msg,_('Error!'),16)
 
-if not(osflag):
-    try: import win32file,win32pipe
-    except:
-        msg=_("Please install")+" Python for Windows Extensions\n\
-(http://sourceforge.net/projects/pywin32/)!"
-        errmsg(msg)
-        raise RuntimeError(msg)
-    
 try: import wx
 except:
     msg=_("Please install")+" wxPython 2.8 ("+_("or higher")+\
@@ -180,15 +167,13 @@ except:
 
 try:
     from PIL import Image
-    from PIL.Image import core as _imaging
 except:
     msg=_("Please install")+" Python Imaging Library (PIL) 1.1.7 ("+\
         _("or higher")+") (http://www.pythonware.com/products/pil/)\n"+\
         _("or")+" Pillow 3.2.0 ("+_("or higher")+\
         ") (https://pillow.readthedocs.org/en/3.2.x/)!\n"+\
         _("Under Debian or Ubuntu you may try")+":\n"\
-        "sudo apt install python-imaging\n"+_("or")+"\n"+\
-        "sudo apt install python-pil"
+        "sudo apt install python3-pil"
     errmsg(msg)
     raise RuntimeError(msg)
 
@@ -237,16 +222,6 @@ def errmsgbox(msg):
     wx.MessageBox(msg,_('Error!'),wx.OK|wx.ICON_ERROR)
     if not(wxapp): app.Exit()
 
-def bpggetcmd():
-    binname='bpgviewer-bpgdec'
-    if not osflag: binname+='.exe'
-    bpgpath=join(dirname(realpath(argv[0])),binname)
-    if not(isfile(bpgpath)):
-        msg=_('BPG decoder not found!\n')
-        errmsgbox(msg)
-        exit()
-    return bpgpath
-
 class GenBitmap(wx.Panel):
     def __init__(self,parent,ID,bitmap,pos=wx.DefaultPosition,
             size=wx.DefaultSize,style=0):
@@ -269,23 +244,6 @@ class GenBitmap(wx.Panel):
             dc.DrawBitmap(self._bitmap,0,0,True)
         self._clear=False
 
-class DecodeThread(Thread):
-    def __init__(self,parent,func):
-        Thread.__init__(self)
-        self.parent=parent
-        self.func=func
-    def run(self):
-        if self.parent.dlock.acquire(False):
-            self.func()
-            self.parent.dlock.release()
-
-SE_EVT_TYPE=wx.NewEventType()
-SE_EVT_BNDR=wx.PyEventBinder(SE_EVT_TYPE,1)
-class ShowEvent(wx.PyCommandEvent):
-    def __init__(self,etype,eid,value=None):
-        wx.PyCommandEvent.__init__(self,etype,eid)
-        self.value=value
-
 class FileDropTarget(wx.FileDropTarget):
     def __init__(self,obj):
         wx.FileDropTarget.__init__(self)
@@ -296,6 +254,34 @@ class FileDropTarget(wx.FileDropTarget):
         self.obj.filelist=[]
         self.obj.showimage(self.obj.checkpath(filenames[0]))
         return True
+
+class libbpgdec():
+    def __init__(self):
+        try:
+            if osflag:
+                self.lib=CDLL(find_library('bpgdec'))
+                self.libc=CDLL(find_library('c'))
+            else:
+                self.lib=cdll.LoadLibrary(join(dirname(realpath(argv[0])),\
+                                          'bpgdec.dll'))
+                self.libc=CDLL(find_library('msvcrt'))
+            self.libc.free.argtypes=[c_void_p]
+            self.libc.free.restype=c_void_p
+            self.lib.bpg_to_rgba_view.restype=POINTER(c_ubyte)
+            self.lib.bpg_to_rgba_view.argtypes=[c_char_p,POINTER(c_int)]
+        except:
+            msg=_('BPG decoder not found!\n')
+            errmsgbox(msg)
+            exit()
+    def bpg_to_rgba_view(self,filename):
+        c_size=c_int(0)
+        c_data=self.lib.bpg_to_rgba_view(bytes(realpath(filename),\
+                                         locale.getdefaultlocale()[1]),\
+                                         pointer(c_size))
+        imbuffer=bytes((c_ubyte*c_size.value).from_address(\
+                       addressof(c_data.contents)))
+        self.libc.free(c_data)
+        return imbuffer
 
 class DFrame(wx.Frame):
     def bpgdecode(self,filename):
@@ -312,51 +298,11 @@ class DFrame(wx.Frame):
             except: return False
             if not(msg):
                 err=0
+                wait=wx.BusyCursor()
                 try:
                     imbuffer=b''
-                    if osflag:
-                        fifo=osopen(self.fifo,O_RDONLY|O_NONBLOCK)
-                        f=Popen([self.bpgpath,realpath(filename),self.fifo],\
-                            bufsize=0,shell=False,stdin=None,stdout=None,\
-                            stderr=None)
-                        if fifo:
-                            while True:
-                                try: data=osread(fifo,16777216)
-                                except OSError as e:
-                                    if e.errno==errno.EAGAIN or\
-                                        e.errno==errno.EWOULDBLOCK: data=''
-                                    else: raise
-                                if len(data): imbuffer+=data
-                                elif f.poll()!=None: break
-                                else: sleep(.1)
-                            osclose(fifo)
-                    else:
-                        si=STARTUPINFO()
-                        si.dwFlags|=1
-                        si.wShowWindow=0
-                        pname='\\\\.\\pipe\\'+basename(self.fifo)
-                        tpipe=win32pipe.CreateNamedPipe(
-                            pname,
-                            win32pipe.PIPE_ACCESS_DUPLEX,
-                            win32pipe.PIPE_TYPE_BYTE|win32pipe.PIPE_WAIT,
-                            1,16777216,16777216,2000,None)
-                        f=Popen([self.bpgpath,realpath(filename),pname],\
-                            shell=False,stdin=None,stdout=None,\
-                            stderr=None,bufsize=0,startupinfo=si)
-                        win32pipe.ConnectNamedPipe(tpipe,None)
-                        imbuffer=''
-                        if version_info[0]<3: imbuffer=''
-                        else: imbuffer=b''
-                        if tpipe:
-                            while True:
-                                data=None
-                                try: data=win32file.ReadFile(tpipe,16777216)
-                                except: data=None
-                                if not(data): break
-                                if data[0]!=0: break
-                                if len(data[1]): imbuffer+=data[1]
-                        win32pipe.DisconnectNamedPipe(tpipe)
-                        f.wait()
+                    imbuffer=self.libbpgdec.bpg_to_rgba_view(realpath(\
+                        filename))
                     if len(imbuffer):
                         x,=unpack("i",imbuffer[0:4])
                         y,=unpack("i",imbuffer[4:8])
@@ -389,10 +335,11 @@ class DFrame(wx.Frame):
                         del imbuffer
                     else: err=1
                 except: err=1
+                del wait
                 if err: msg=_('BPG decoding error!\n')
         else: msg=_('File')+' \"%s\" '%filename+_('is not a BPG-File!')
         if msg:
-            wx.PostEvent(self,ShowEvent(SE_EVT_TYPE,-1,value=msg))
+            errmsgbox(msg)
             if self.img:
                 del self.img
                 self.img=None
@@ -406,16 +353,15 @@ class DFrame(wx.Frame):
         self.stitle(_('Press Ctrl+O to open BPG file...'))
     def getcsize(self):
         cr=wx.Display().GetClientArea()
-        cw=self.GetSize()
-        cc=self.GetClientSize()
-        return cr[2]-cr[0]-cw[0]+cc[0],cr[3]-cr[1]-cw[1]+cc[1]
-    def bitmapfrompil(self,img):
-        if wx.VERSION[0]<4:
-            return wx.BitmapFromBufferRGBA(img.size[0],\
-                img.size[1],img.convert("RGBA").tobytes())
+        if osflag:
+            return cr[2]-cr[0],cr[3]-cr[1]
         else:
-            return wx.Bitmap.FromBufferRGBA(img.size[0],\
-                img.size[1],img.convert("RGBA").tobytes())
+            cw=self.GetSize()
+            cc=self.GetClientSize()
+            return cr[2]-cr[0]-cw[0]+cc[0],cr[3]-cr[1]-cw[1]+cc[1]
+    def bitmapfrompil(self,img):
+        return wx.Bitmap.FromBufferRGBA(img.size[0],\
+            img.size[1],img.convert("RGBA").tobytes())
     def scaleframe(self,img,width,height):
         if img:
             return self.bitmapfrompil(img.resize((int(width),\
@@ -427,8 +373,7 @@ class DFrame(wx.Frame):
         else: return None
     def showsingleframe(self,bitmap):
         self.bitmap.SetBitmap(bitmap)
-        if wx.VERSION[0]<4: self.bitmap.SetToolTipString(self.imginfo)
-        else: self.bitmap.SetToolTip(self.imginfo)
+        self.bitmap.SetToolTip(self.imginfo)
         x,y=bitmap.GetSize()
         self.panel.SetVirtualSize((x,y))
         self.panel.SetScrollbars(1,1,x,y)
@@ -463,8 +408,7 @@ class DFrame(wx.Frame):
             self.imginfo='%.2f'%self.scale+'%@'+self.bitmap_text
             self.showsingleframe(bitmap)
     def emptybitmap(self):
-        if wx.VERSION[0]<4: buffer=wx.EmptyBitmap(400,300)
-        else: buffer=wx.Bitmap(400,300)
+        buffer=wx.Bitmap(400,300)
         dc=wx.BufferedDC(None,buffer)
         dc.SetBackground(wx.Brush(self.panel.GetBackgroundColour()))
         dc.Clear()
@@ -511,10 +455,6 @@ class DFrame(wx.Frame):
                     if self.filelist[self.index]==realpath(filename): break
                     else: self.index+=1
                     if self.index>=len(self.filelist): break
-        wx.PostEvent(self,ShowEvent(SE_EVT_TYPE,-1))
-    def _evt_showimage(self,evt):
-        if evt.value: errmsgbox(evt.value)
-        else:
             if self.img:
                 self.showbitmap(self.autoscaled())
                 wx.CallAfter(self.Center)
@@ -528,8 +468,7 @@ class DFrame(wx.Frame):
         if not self.dlock.acquire(False): return
         self.dlock.release()
         if self.frame_timer.IsRunning(): self.frame_timer.Stop()
-        self.dthread=DecodeThread(self,lambda: self._showimage(filename))
-        self.dthread.start()
+        self._showimage(filename)
     def getfilelist(self,dirname):
         filelist=[]
         for f in sorted(listdir(dirname)):
@@ -552,11 +491,11 @@ class DFrame(wx.Frame):
         kwds["title"]=title
         kwds["parent"]=parent
         wx.Frame.__init__(self,*args,**kwds)
+        self.libbpgdec=libbpgdec()
         self.dt=FileDropTarget(self)
         self.SetDropTarget(self.dt)
         self.max=False
         self.codepage=locale.getdefaultlocale()[1]
-        self.bpgpath=bpggetcmd()
         self.scale=100.0
         self.autoscale=100.0
         self.bitmap_text=''
@@ -572,12 +511,6 @@ class DFrame(wx.Frame):
         t,self.fifo=mkstemp(suffix='.rgb',prefix='')
         close(t)
         remove(self.fifo)
-        if osflag:
-            try: mkfifo(self.fifo,0o700)
-            except:
-                msg=_('Unable to create FIFO file!')
-                errmsgbox(msg)
-                exit()
         self.filelist=[]
         self.index=0
         self.SetDoubleBuffered(True)
@@ -612,7 +545,7 @@ class DFrame(wx.Frame):
             self._icon.CopyFromBitmap(wx.Bitmap(tmp_icon))
         try: self.SetIcon(self._icon)
         except: pass
-        self.Bind(SE_EVT_BNDR,self._evt_showimage)
+        self.deftitle()
         self.Layout()
         self.Center()
         self.panel.SetFocus()

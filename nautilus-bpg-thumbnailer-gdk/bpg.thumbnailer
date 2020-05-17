@@ -1,0 +1,4 @@
+[Thumbnailer Entry]
+TryExec=bpg-thumbnailer
+Exec=bpg-thumbnailer %i %o %s
+MimeType=image/bpg;
