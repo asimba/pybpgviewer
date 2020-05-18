@@ -29,12 +29,11 @@ from sys import argv,exit
 from os import listdir,access,R_OK,close,remove
 from os.path import exists,isfile,isdir,dirname,basename,realpath,\
                     join,abspath
-from tempfile import mkstemp
 from shutil import copyfile
 from math import floor
 from struct import unpack
 from platform import system
-from threading import Thread,Lock
+from threading import Lock
 from ctypes import *
 from ctypes.util import find_library
 import locale
@@ -464,6 +463,7 @@ class DFrame(wx.Frame):
             if len(self.imginfo): self.stitle(self.filelist[self.index]+\
                 ' ('+self.imginfo+')')
             else: self.deftitle()
+        else: self.deftitle()
     def showimage(self,filename):
         if not self.dlock.acquire(False): return
         self.dlock.release()
@@ -505,12 +505,8 @@ class DFrame(wx.Frame):
         self.frame_timer=wx.Timer(self)
         self.Bind(wx.EVT_TIMER,self.shownextframe,self.frame_timer)
         self.imginfo=''
-        self.fifo=''
         self.dlock=Lock()
         self.mpos=None
-        t,self.fifo=mkstemp(suffix='.rgb',prefix='')
-        close(t)
-        remove(self.fifo)
         self.filelist=[]
         self.index=0
         self.SetDoubleBuffered(True)
@@ -545,7 +541,6 @@ class DFrame(wx.Frame):
             self._icon.CopyFromBitmap(wx.Bitmap(tmp_icon))
         try: self.SetIcon(self._icon)
         except: pass
-        self.deftitle()
         self.Layout()
         self.Center()
         self.panel.SetFocus()
