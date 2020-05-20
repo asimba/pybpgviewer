@@ -1,0 +1,10 @@
+CC = gcc
+CFLAGS  = -O3 -fPIC -shared -lbpg
+
+TARGET = libbpgdec
+
+all: $(TARGET)
+
+$(TARGET): $(TARGET).c ; $(CC) $(TARGET).c $(CFLAGS) -o $(TARGET).dylib
+
+clean: ; $(RM) $(TARGET)
