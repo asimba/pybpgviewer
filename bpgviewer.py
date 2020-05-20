@@ -83,7 +83,6 @@ load(t,(\
         "ru_RU","не является файлом в формате BPG!"),\
     ("Press Ctrl+O to open BPG file...","ru_RU",
         "Нажмите Ctrl+O, чтобы открыть файл BPG..."),\
-    ("Unable to create FIFO file!","ru_RU","Невозможно создать файл FIFO!"),\
     ("Loading...","ru_RU","Загрузка..."),\
     ("Rotating...","ru_RU","Поворот..."),\
     ("This is BPG image file viewer. Hot keys:\n","ru_RU",
