@@ -848,9 +848,6 @@ class DFrame(wx.Frame):
         event.Skip()
     def __del__(self):
         if self.frame_timer.IsRunning(): self.frame_timer.Stop()
-        if osflag and exists(self.fifo):
-            try: remove(self.fifo)
-            except: pass
 
 class bpgframe(wx.App):
     def __init__(self,parent,filename):
