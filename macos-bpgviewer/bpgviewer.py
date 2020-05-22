@@ -1,9 +1,9 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 '''
 Simple BPG Image viewer.
 
-Copyright (c) 2014-2018, Alexey Simbarsky
+Copyright (c) 2014-2020, Alexey Simbarsky
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -25,42 +25,24 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 '''
 
-from sys import argv,exit,version_info
-from os import listdir,access,R_OK,W_OK,stat,close,remove,mkdir
-from os.path import exists,isfile,isdir,dirname,basename,realpath,join,\
-    abspath,expanduser
-from tempfile import mkstemp
-from shutil import copyfile,rmtree
-from subprocess import call,Popen,PIPE,STDOUT
+from sys import argv,exit
+from os import listdir,access,R_OK,close,remove
+from os.path import exists,isfile,isdir,dirname,basename,realpath,\
+                    join,abspath
+from shutil import copyfile
 from math import floor
 from struct import unpack
 from platform import system
-import locale,pickle,base64,zlib
-from os import mkfifo,O_RDONLY,O_NONBLOCK
-from os import open as osopen
-from os import read as osread
-from os import close as osclose
-import wx
-from PIL import Image
-from PIL.Image import core as _imaging
-from threading import Thread,Lock
-import errno
+from threading import Lock
+from ctypes import *
+from ctypes.util import find_library
+from subprocess import call,Popen,PIPE,STDOUT
+import locale
 
-#postinstall
-path=join(expanduser('~'),\
-    'Library/Saved Application State/org.asimbarsky.osx.bpgviewer.savedState')
-ipath=join(path,'installed')
-if exists(path) and not exists(ipath):
-    try:
-        rmtree(path)
-        mkdir(path)
-        mkdir(ipath)
-    except: pass
-    f=Popen(['chmod','-w',path],False,stdin=None,stdout=None,stderr=None)
-    f.wait()
-    f=Popen(['qlmanage','-r'],False,stdin=None,stdout=None,stderr=None)
-    f.wait()
-#postinstall
+if system()=="Windows":
+    osflag=False
+else:
+    osflag=True
 
 wxapp=False
 
@@ -69,18 +51,14 @@ class translator():
         self.voc={}
         f=Popen('defaults read -g "AppleLanguages"',shell=True,stdin=None,\
                 stdout=PIPE,stderr=STDOUT)
-        l=str(f.stdout.readlines()[1]).strip().strip('"').replace('-','_').replace('"','').replace('','')
+        l=str(f.stdout.readlines()[1])
+        l=l[l.index('"')+1:l.rindex('"')].replace('-','_')
         f.wait()
         self.locale=(l,'UTF-8')
     def find(self,key):
-        try: wxu=True if wx.VERSION[0]>3 else False
-        except: wxu=False
         if key in self.voc:
             if self.locale[0] in self.voc[key]:
-                if wxu: return self.voc[key][self.locale[0]]
-                else:
-                    return self.voc[key][self.locale[0]].encode(\
-                        self.locale[1])
+                return self.voc[key][self.locale[0]]
         return key
 
 t=translator()
@@ -107,35 +85,33 @@ load(t,(\
     ("BPG decoder not found!\n","ru_RU","BPG декодер не найден!\n"),\
     ("BPG decoding error!\n","ru_RU","Ошибка при декодировании файла!\n"),\
     ("Unable to open ","ru_RU","Невозможно открыть файл "),\
-    ("File","ru_RU","Файл"),("is not a BPG-File!","ru_RU",
-        "не является файлом в формате BPG!"),\
-    ("Press ⌘O to open BPG file...","ru_RU",
-        "Нажмите ⌘O, чтобы открыть файл BPG..."),\
-    ("Unable to create FIFO file!","ru_RU","Невозможно создать файл FIFO!"),\
+    ("File","ru_RU","Файл"),("is not a BPG-File!",
+        "ru_RU","не является файлом в формате BPG!"),\
+    ("Press Ctrl+O to open BPG file...","ru_RU",
+        "Нажмите Ctrl+O, чтобы открыть файл BPG..."),\
     ("Loading...","ru_RU","Загрузка..."),\
     ("Rotating...","ru_RU","Поворот..."),\
     ("This is BPG image file viewer. Hot keys:\n","ru_RU",
         "Просмотр изображений в формате BPG. Клавиатурные сочетания:\n"),\
     ("Esc - close\n","ru_RU","Esc - выход\n"),\
-    ("⌘O - open BPG image file\n","ru_RU","⌘O - открыть файл\n"),\
-    ("⌘S - save a copy of the opened file as a PNG file\n","ru_RU",
-        "⌘S - сохранить копию изображения в формате PNG\n"),\
-    ("⌘C - save a copy of the opened file\n","ru_RU",
-        "⌘C - сохранить копию исходного файла\n"),\
-    ("⌘R - rotate 90 degrees clockwise\n","ru_RU",
-        "⌘R - поворот на 90 градусов по часовой стрелке\n"),\
-    ("⌘L - rotate 90 degrees counterclockwise\n","ru_RU",
-        "⌘L - поворот на 90 градусов против часовой стрелки\n"),\
-    ("⌘F - toggle full screen mode\n","ru_RU",
-        "⌘F - включить/выключить полноэкранный режим\n"),\
-    ("⌘T - toggle 'stay on top' mode\n","ru_RU",
-        "⌘T - включить/выключить режим 'поверх остальных'\n"),\
-    ("⌘Left,Home - jump to the first image in folder\n","ru_RU",
-        "⌘Left,Home - перейти к первому изображению в папке\n"),\
-    ("⌘Right,End - jump to the last image in folder\n","ru_RU",
-        "⌘Right,End - перейти к последнему изображению в папке\n"),\
-    ("+ - zoom in (up to 100%)\n","ru_RU",
-        "+ - увеличить (не более чем до 100%)\n"),\
+    ("Ctrl+O - open BPG image file\n","ru_RU","Ctrl+O - открыть файл\n"),\
+    ("Ctrl+S - save a copy of the opened file as a PNG file\n","ru_RU",
+        "Ctrl+S - сохранить копию изображения в формате PNG\n"),\
+    ("Ctrl+C - save a copy of the opened file\n","ru_RU",
+        "Ctrl+C - сохранить копию исходного файла\n"),\
+    ("Ctrl+R - rotate 90 degrees clockwise\n","ru_RU",
+        "Ctrl+R - поворот на 90 градусов по часовой стрелке\n"),\
+    ("Ctrl+L - rotate 90 degrees counterclockwise\n","ru_RU",
+        "Ctrl+L - поворот на 90 градусов против часовой стрелки\n"),\
+    ("Ctrl+F - toggle full screen mode\n","ru_RU",
+        "Ctrl+F - включить/выключить полноэкранный режим\n"),\
+    ("Ctrl+T - toggle 'stay on top' mode\n","ru_RU",
+        "Ctrl+T - включить/выключить режим 'поверх остальных'\n"),\
+    ("Ctrl+Left,Home - jump to the first image in folder\n","ru_RU",
+        "Ctrl+Left,Home - перейти к первому изображению в папке\n"),\
+    ("Ctrl+Right,End - jump to the last image in folder\n","ru_RU",
+        "Ctrl+Right,End - перейти к последнему изображению в папке\n"),\
+    ("+ - zoom in (up to 100%)\n","ru_RU","+ - увеличить (не более чем до 100%)\n"),\
     ("- - zoom out (down to the smallest available size)\n","ru_RU",
         "- - уменьшить (до минимального доступного размера)\n"),\
     ("* - zoom out to fit window area\n","ru_RU",
@@ -162,30 +138,93 @@ load(t,(\
     ("Save a copy...","ru_RU","Сохранение копии файла..."),\
     ("Zooming in...","ru_RU","Увеличение..."),\
     ("Zooming out...","ru_RU","Уменьшение..."),
-    ("Error!","ru_RU","Ошибка!"),\
-))
+    ("Error!","ru_RU","Ошибка!")))
 
 def _(s):
-    return t.find(s)
+    return str(t.find(s))
 
-def __(s,codepage):
-    if version_info[0]<3:
-        if type(s) is unicode: s=s.encode(codepage)
-    return s
+def errmsg(msg):
+    if osflag:
+        try:
+            f=Popen(['notify-send',msg],False,stdin=None,stdout=None,\
+            stderr=None)
+            f.wait()
+        except:
+            try:
+                f=Popen(['xmessage',msg],False,stdin=None,stdout=None,\
+                    stderr=None)
+                f.wait()
+            except: pass
+    else:
+        import ctypes
+        MessageBox=ctypes.windll.user32.MessageBoxW
+        MessageBox(0,msg,_('Error!'),16)
+
+try: import wx
+except:
+    msg=_("Please install")+" wxPython 2.8 ("+_("or higher")+\
+        ") (http://www.wxpython.org/)!\n"+\
+        _("Under Debian or Ubuntu you may try")+":\n"\
+        "sudo apt install python3-wxgtk4.0"
+    errmsg(msg)
+    raise RuntimeError(msg)
+
+try:
+    from PIL import Image
+except:
+    msg=_("Please install")+" Python Imaging Library (PIL) 1.1.7 ("+\
+        _("or higher")+") (http://www.pythonware.com/products/pil/)\n"+\
+        _("or")+" Pillow 3.2.0 ("+_("or higher")+\
+        ") (https://pillow.readthedocs.org/en/3.2.x/)!\n"+\
+        _("Under Debian or Ubuntu you may try")+":\n"\
+        "sudo apt install python3-pil"
+    errmsg(msg)
+    raise RuntimeError(msg)
+
+from wx.lib.embeddedimage import PyEmbeddedImage
+
+bpglogo=PyEmbeddedImage(
+    "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"
+    "P7EZ5A4mdx+jAAAAAElFTkSuQmCC")
 
 def errmsgbox(msg):
+    if not(wxapp): app=wx.App(0)
     print(msg)
-    try: wx.MessageBox(msg,_('Error!'),wx.OK|wx.ICON_ERROR)
-    except: pass
-
-def bpggetcmd():
-    binname='bpgdec'
-    bpgpath=join(dirname(realpath(argv[0])),binname)
-    if not(isfile(bpgpath)):
-        msg=_('BPG decoder not found!\n')
-        errmsgbox(msg)
-        exit()
-    return bpgpath
+    wx.MessageBox(msg,_('Error!'),wx.OK|wx.ICON_ERROR)
+    if not(wxapp): app.Exit()
 
 class GenBitmap(wx.Panel):
     def __init__(self,parent,ID,bitmap,pos=wx.DefaultPosition,
@@ -209,23 +248,6 @@ class GenBitmap(wx.Panel):
             dc.DrawBitmap(self._bitmap,0,0,True)
         self._clear=False
 
-class DecodeThread(Thread):
-    def __init__(self,parent,func):
-        Thread.__init__(self)
-        self.parent=parent
-        self.func=func
-    def run(self):
-        if self.parent.dlock.acquire(False):
-            self.func()
-            self.parent.dlock.release()
-
-SE_EVT_TYPE=wx.NewEventType()
-SE_EVT_BNDR=wx.PyEventBinder(SE_EVT_TYPE,1)
-class ShowEvent(wx.PyCommandEvent):
-    def __init__(self,etype,eid,value=None):
-        wx.PyCommandEvent.__init__(self,etype,eid)
-        self.value=value
-
 class FileDropTarget(wx.FileDropTarget):
     def __init__(self,obj):
         wx.FileDropTarget.__init__(self)
@@ -237,10 +259,37 @@ class FileDropTarget(wx.FileDropTarget):
         self.obj.showimage(self.obj.checkpath(filenames[0]))
         return True
 
+class libbpgdec():
+    def __init__(self):
+        try:
+            if osflag:
+                self.lib=CDLL(find_library('bpgdec'))
+                self.libc=CDLL(find_library('c'))
+            else:
+                self.lib=cdll.LoadLibrary(join(dirname(realpath(argv[0])),\
+                                          'bpgdec.dll'))
+                self.libc=CDLL(find_library('msvcrt'))
+            self.libc.free.argtypes=[c_void_p]
+            self.libc.free.restype=c_void_p
+            self.lib.bpg_to_rgba_view.restype=POINTER(c_ubyte)
+            self.lib.bpg_to_rgba_view.argtypes=[c_char_p,POINTER(c_int)]
+        except:
+            msg=_('BPG decoder not found!\n')
+            errmsgbox(msg)
+            exit()
+    def bpg_to_rgba_view(self,filename):
+        c_size=c_int(0)
+        c_data=self.lib.bpg_to_rgba_view(bytes(realpath(filename),\
+                                         locale.getdefaultlocale()[1]),\
+                                         pointer(c_size))
+        imbuffer=bytes((c_ubyte*c_size.value).from_address(\
+                       addressof(c_data.contents)))
+        self.libc.free(c_data)
+        return imbuffer
+
 class DFrame(wx.Frame):
     def bpgdecode(self,filename):
         msg=None
-        cmd='"'+self.bpgpath+'"'
         self.frames_index=0
         if len(self.frames): self.frames=[]
         if self.img:
@@ -253,30 +302,11 @@ class DFrame(wx.Frame):
             except: return False
             if not(msg):
                 err=0
+                wait=wx.BusyCursor()
                 try:
-                    if version_info[0]<3: imbuffer=''
-                    else: imbuffer=b''
-                    t,tmp=mkstemp(suffix='.rgb',prefix='')
-                    close(t)
-                    cmd+=' "'+realpath(filename)+'" '+tmp+' >/dev/null 2>&1'
-                    f=Popen(cmd,shell=True,stdin=None,stdout=None,stderr=None)
-                    f.wait()
-                    fifo=osopen(tmp,O_RDONLY|O_NONBLOCK)
-                    if fifo:
-                        while True:
-                            try: data=osread(fifo,16777216)
-                            except OSError as e:
-                                if e.errno==errno.EAGAIN or\
-                                    e.errno==errno.EWOULDBLOCK:
-                                        data=''
-                                        continue
-                                else: raise
-                            if len(data): imbuffer+=data
-                            else: break
-                        osclose(fifo)
-                    if exists(tmp):
-                        try: remove(tmp)
-                        except: pass
+                    imbuffer=b''
+                    imbuffer=self.libbpgdec.bpg_to_rgba_view(realpath(\
+                        filename))
                     if len(imbuffer):
                         x,=unpack("i",imbuffer[0:4])
                         y,=unpack("i",imbuffer[4:8])
@@ -284,8 +314,7 @@ class DFrame(wx.Frame):
                         d,=unpack("i",imbuffer[12:16])
                         if n==0 and d==1:
                             try:
-                                self.img=Image.frombytes('RGBA',(x,y),
-                                    imbuffer[16:])
+                                self.img=Image.frombytes('RGBA',(x,y),imbuffer[16:])
                             except: err=1
                         else:
                             self.scale=100.0
@@ -302,8 +331,7 @@ class DFrame(wx.Frame):
                                     ishift+=4
                                 except: break
                                 try:
-                                    img=Image.frombytes('RGBA',(x,y),
-                                        imbuffer[ishift:])
+                                    img=Image.frombytes('RGBA',(x,y),imbuffer[ishift:])
                                 except: break
                                 ishift+=(x*y*4)
                                 self.frames.append([self.bitmapfrompil(img),n*1000/d])
@@ -311,10 +339,11 @@ class DFrame(wx.Frame):
                         del imbuffer
                     else: err=1
                 except: err=1
+                del wait
                 if err: msg=_('BPG decoding error!\n')
         else: msg=_('File')+' \"%s\" '%filename+_('is not a BPG-File!')
         if msg:
-            wx.PostEvent(self,ShowEvent(SE_EVT_TYPE,-1,value=msg))
+            errmsgbox(msg)
             if self.img:
                 del self.img
                 self.img=None
@@ -322,21 +351,21 @@ class DFrame(wx.Frame):
         return False
     def stitle(self,title):
         self.Title=title
-        self.Update()
+        if osflag: self.Update()
+        else: self.Refresh()
     def deftitle(self):
-        self.stitle(_('Press ⌘O to open BPG file...'))
+        self.stitle(_('Press Ctrl+O to open BPG file...'))
     def getcsize(self):
         cr=wx.Display().GetClientArea()
-        cw=self.GetSize()
-        cc=self.GetClientSize()
-        return cr[2]-cr[0]-cw[0]+cc[0],cr[3]-cr[1]-cw[1]+cc[1]
-    def bitmapfrompil(self,img):
-        if wx.VERSION[0]<4:
-            return wx.BitmapFromBufferRGBA(img.size[0],\
-                img.size[1],img.convert("RGBA").tobytes())
+        if osflag:
+            return cr[2]-cr[0],cr[3]-cr[1]
         else:
-            return wx.Bitmap.FromBufferRGBA(img.size[0],\
-                img.size[1],img.convert("RGBA").tobytes())
+            cw=self.GetSize()
+            cc=self.GetClientSize()
+            return cr[2]-cr[0]-cw[0]+cc[0],cr[3]-cr[1]-cw[1]+cc[1]
+    def bitmapfrompil(self,img):
+        return wx.Bitmap.FromBufferRGBA(img.size[0],\
+            img.size[1],img.convert("RGBA").tobytes())
     def scaleframe(self,img,width,height):
         if img:
             return self.bitmapfrompil(img.resize((int(width),\
@@ -348,8 +377,7 @@ class DFrame(wx.Frame):
         else: return None
     def showsingleframe(self,bitmap):
         self.bitmap.SetBitmap(bitmap)
-        if wx.VERSION[0]<4: self.bitmap.SetToolTipString(self.imginfo)
-        else: self.bitmap.SetToolTip(self.imginfo)
+        self.bitmap.SetToolTip(self.imginfo)
         x,y=bitmap.GetSize()
         self.panel.SetVirtualSize((x,y))
         self.panel.SetScrollbars(1,1,x,y)
@@ -428,14 +456,9 @@ class DFrame(wx.Frame):
                 self.filelist=self.getfilelist(dirname(realpath(filename)))
                 self.index=0
                 while(True):
-                    if self.index>=len(self.filelist): break
                     if self.filelist[self.index]==realpath(filename): break
                     else: self.index+=1
                     if self.index>=len(self.filelist): break
-        wx.PostEvent(self,ShowEvent(SE_EVT_TYPE,-1))
-    def _evt_showimage(self,evt):
-        if evt.value: errmsgbox(evt.value)
-        else:
             if self.img:
                 self.showbitmap(self.autoscaled())
                 wx.CallAfter(self.Center)
@@ -445,12 +468,12 @@ class DFrame(wx.Frame):
             if len(self.imginfo): self.stitle(self.filelist[self.index]+\
                 ' ('+self.imginfo+')')
             else: self.deftitle()
+        else: self.deftitle()
     def showimage(self,filename):
         if not self.dlock.acquire(False): return
         self.dlock.release()
         if self.frame_timer.IsRunning(): self.frame_timer.Stop()
-        self.dthread=DecodeThread(self,lambda: self._showimage(filename))
-        self.dthread.start()
+        self._showimage(filename)
     def getfilelist(self,dirname):
         filelist=[]
         for f in sorted(listdir(dirname)):
@@ -473,11 +496,11 @@ class DFrame(wx.Frame):
         kwds["title"]=title
         kwds["parent"]=parent
         wx.Frame.__init__(self,*args,**kwds)
+        self.libbpgdec=libbpgdec()
         self.dt=FileDropTarget(self)
         self.SetDropTarget(self.dt)
         self.max=False
         self.codepage=locale.getdefaultlocale()[1]
-        self.bpgpath=bpggetcmd()
         self.scale=100.0
         self.autoscale=100.0
         self.bitmap_text=''
@@ -487,9 +510,8 @@ class DFrame(wx.Frame):
         self.frame_timer=wx.Timer(self)
         self.Bind(wx.EVT_TIMER,self.shownextframe,self.frame_timer)
         self.imginfo=''
-        self.fifo=''
-        self.mpos=None
         self.dlock=Lock()
+        self.mpos=None
         self.filelist=[]
         self.index=0
         self.SetDoubleBuffered(True)
@@ -507,18 +529,27 @@ class DFrame(wx.Frame):
         self.sizer.AddGrowableRow(0)
         self.sizer.Add(self.panel,1,wx.ALIGN_CENTER,0)
         self.SetSizer(self.sizer)
+        title=self.checkpath(title)
         self.bitmap.Bind(wx.EVT_KEY_DOWN,self.keydown)
-        self.panel.Bind(wx.EVT_MOUSE_EVENTS,self.drag)
         self.bitmap.Bind(wx.EVT_MOTION,self.drag)
+        self.panel.Bind(wx.EVT_MOUSE_EVENTS,self.drag)
         self.bitmap.Bind(wx.EVT_MOUSE_EVENTS,self.drag)
         self.Bind(wx.EVT_SIZE,self.fresize)
         self.Bind(wx.EVT_ERASE_BACKGROUND,lambda e: None)
         self.Bind(wx.EVT_CLOSE,self.OnClose)
-        self.Bind(SE_EVT_BNDR,self._evt_showimage)
+        if osflag: self._icon=bpglogo.GetIcon()
+        else:
+            tmp_icon=bpglogo.GetImage()
+            tmp_icon.Rescale(32,32,wx.IMAGE_QUALITY_HIGH)
+            self._icon=wx.Icon()
+            self._icon.CopyFromBitmap(wx.Bitmap(tmp_icon))
+        try: self.SetIcon(self._icon)
+        except: pass
         self.Layout()
         self.Center()
         self.panel.SetFocus()
-        wx.CallLater(1000,self.showimage,title)
+        self.showimage(title)
+        wx.GetApp()._filename=None
     def loadindex(self,old):
         if self.index!=old:
             self.stitle(_('Loading...'))
@@ -554,7 +585,7 @@ class DFrame(wx.Frame):
                     dx=self.mpos[0]-pos[0]
                     dy=self.mpos[1]-pos[1]
                     self.panel.Scroll(self.panel.GetScrollPos(wx.HORIZONTAL)+\
-                        dx/px,self.panel.GetScrollPos(wx.VERTICAL)+dy/py)
+                        int(dx/px),self.panel.GetScrollPos(wx.VERTICAL)+int(dy/py))
                 return
             if event.LeftDown():
                 self.mpos=event.GetPosition()
@@ -567,6 +598,7 @@ class DFrame(wx.Frame):
             self.maximize()
     def rotate(self,dir):
         if self.img:
+            self.bitmap._clear=True
             self.stitle(_('Rotating...'))
             if dir: self.img=self.img.rotate(-90,expand=1)
             else: self.img=self.img.rotate(90,expand=1)
@@ -575,13 +607,7 @@ class DFrame(wx.Frame):
                     x=self.img.size[0]*(self.scale/100.0)
                     y=self.img.size[1]*(self.scale/100.0)
                     self.showbitmap(self.scalebitmap(x,y))
-                else:
-                    if self.img.mode[-1]=='A':
-                        self.showbitmap(wx.Bitmap.FromBufferRGBA(self.img.size[0],\
-                             self.img.size[1],self.img.convert("RGBA").tobytes()))
-                    else:
-                        self.showbitmap(wx.Bitmap.FromBuffer(self.img.size[0],\
-                            self.img.size[1],self.img.convert("RGB").tobytes()))
+                else: self.showbitmap(self.bitmapfrompil(self.img))
             if len(self.imginfo): self.stitle(self.filelist[self.index]+\
                 ' ('+self.imginfo+')')
     def fresize(self,event):
@@ -638,9 +664,8 @@ class DFrame(wx.Frame):
                 if status==wx.ID_OK:
                     self.stitle(_('Loading...'))
                     self.filelist=[]
-                    filename=openFileDialog.GetPath()
+                    self.showimage(openFileDialog.GetPath())
                     openFileDialog.Destroy()
-                    self.showimage(filename)
                 return
             if keycode==ord('S') and self.img:
                 saveFileDialog=wx.FileDialog(self,_("Save BPG file as PNG file"),\
@@ -731,15 +756,15 @@ class DFrame(wx.Frame):
             if keycode==wx.WXK_F1:
                 wx.MessageBox(_('This is BPG image file viewer. Hot keys:\n')+\
                 _('Esc - close\n')+\
-                _('⌘O - open BPG image file\n')+\
-                _('⌘S - save a copy of the opened file as a PNG file\n')+\
-                _('⌘C - save a copy of the opened file\n')+\
-                _('⌘R - rotate 90 degrees clockwise\n')+\
-                _('⌘L - rotate 90 degrees counterclockwise\n')+\
-                _('⌘F - toggle full screen mode\n')+\
-                _('⌘T - toggle \'stay on top\' mode\n')+\
-                _('⌘Left,Home - jump to the first image in folder\n')+\
-                _('⌘Right,End - jump to the last image in folder\n')+\
+                _('Ctrl+O - open BPG image file\n')+\
+                _('Ctrl+S - save a copy of the opened file as a PNG file\n')+\
+                _('Ctrl+C - save a copy of the opened file\n')+\
+                _('Ctrl+R - rotate 90 degrees clockwise\n')+\
+                _('Ctrl+L - rotate 90 degrees counterclockwise\n')+\
+                _('Ctrl+F - toggle full screen mode\n')+\
+                _('Ctrl+T - toggle \'stay on top\' mode\n')+\
+                _('Ctrl+Left,Home - jump to the first image in folder\n')+\
+                _('Ctrl+Right,End - jump to the last image in folder\n')+\
                 _('+ - zoom in (up to 100%)\n')+\
                 _('- - zoom out (down to the smallest available size)\n')+\
                 _('* - zoom out to fit window area\n')+\
@@ -843,11 +868,16 @@ class bpgframe(wx.App):
         if hasattr(self,'frame'):
             self.BringWindowToFront()
             self.frame.showimage(self.frame.checkpath(filename))
+            self.Raise()
+        else:
+            self._filename=filename
     def MacReopenApp(self):
         self.BringWindowToFront()
-    def __init__(self,parent,filename):
+    def __init__(self,parent):
         super(bpgframe,self).__init__(parent)
-        self.frame=DFrame(None,filename)
+        if hasattr(self,'_filename') and self._filename!=None:
+            self.frame=DFrame(None,self._filename)
+        else: self.frame=DFrame(None,'')
         self.SetTopWindow(self.frame)
         self.SetExitOnFrameDelete(True)
         self.Bind(wx.EVT_ACTIVATE_APP,self.OnActivate)
@@ -856,6 +886,5 @@ class bpgframe(wx.App):
 
 if __name__=='__main__':
     wxapp=True
-    if len(argv)==1: app=bpgframe(None,'')
-    else: app=bpgframe(None,realpath(argv[1]))
+    app=bpgframe(None)
     app.MainLoop()
