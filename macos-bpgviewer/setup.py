@@ -9,18 +9,20 @@ from setuptools import setup
 
 APP = ['bpgviewer.py']
 APP_NAME = 'Simple BPG Image viewer'
-DATA_FILES = ['bpgdec']
+DATA_FILES = ['libbpgdec.dylib']
+PACKAGES = ['wx','PIL']
 OPTIONS = {
-    'argv_emulation': True,
+    'argv_emulation': False,
+    'packages': PACKAGES,
     'iconfile':'bpg.icns',
     'plist': {
         'CFBundleName': APP_NAME,
         'CFBundleDisplayName': APP_NAME,
         'CFBundleGetInfoString': 'Viewer for BPG images',
         'CFBundleIdentifier': "org.asimbarsky.osx.bpgviewer",
-        'CFBundleVersion': "1.26.0",
-        'CFBundleShortVersionString': "1.26.0",
-        'NSHumanReadableCopyright': u"Copyright (c) 2018, Alexey Simbarsky, All Rights Reserved",
+        'CFBundleVersion': "1.27.0",
+        'CFBundleShortVersionString': "1.27.0",
+        'NSHumanReadableCopyright': u"Copyright (c) 2020, Alexey Simbarsky, All Rights Reserved",
         'NSQuitAlwaysKeepsWindows': False,
         'CFBundleDocumentTypes': [
             {
