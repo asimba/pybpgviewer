@@ -87,30 +87,30 @@ load(t,(\
     ("Unable to open ","ru_RU","Невозможно открыть файл "),\
     ("File","ru_RU","Файл"),("is not a BPG-File!",
         "ru_RU","не является файлом в формате BPG!"),\
-    ("Press Ctrl+O to open BPG file...","ru_RU",
-        "Нажмите Ctrl+O, чтобы открыть файл BPG..."),\
+    ("Press ⌘+O to open BPG file...","ru_RU",
+        "Нажмите ⌘+O, чтобы открыть файл BPG..."),\
     ("Loading...","ru_RU","Загрузка..."),\
     ("Rotating...","ru_RU","Поворот..."),\
     ("This is BPG image file viewer. Hot keys:\n","ru_RU",
         "Просмотр изображений в формате BPG. Клавиатурные сочетания:\n"),\
     ("Esc - close\n","ru_RU","Esc - выход\n"),\
-    ("Ctrl+O - open BPG image file\n","ru_RU","Ctrl+O - открыть файл\n"),\
-    ("Ctrl+S - save a copy of the opened file as a PNG file\n","ru_RU",
-        "Ctrl+S - сохранить копию изображения в формате PNG\n"),\
-    ("Ctrl+C - save a copy of the opened file\n","ru_RU",
-        "Ctrl+C - сохранить копию исходного файла\n"),\
-    ("Ctrl+R - rotate 90 degrees clockwise\n","ru_RU",
-        "Ctrl+R - поворот на 90 градусов по часовой стрелке\n"),\
-    ("Ctrl+L - rotate 90 degrees counterclockwise\n","ru_RU",
-        "Ctrl+L - поворот на 90 градусов против часовой стрелки\n"),\
-    ("Ctrl+F - toggle full screen mode\n","ru_RU",
-        "Ctrl+F - включить/выключить полноэкранный режим\n"),\
-    ("Ctrl+T - toggle 'stay on top' mode\n","ru_RU",
-        "Ctrl+T - включить/выключить режим 'поверх остальных'\n"),\
-    ("Ctrl+Left,Home - jump to the first image in folder\n","ru_RU",
-        "Ctrl+Left,Home - перейти к первому изображению в папке\n"),\
-    ("Ctrl+Right,End - jump to the last image in folder\n","ru_RU",
-        "Ctrl+Right,End - перейти к последнему изображению в папке\n"),\
+    ("⌘+O - open BPG image file\n","ru_RU","⌘+O - открыть файл\n"),\
+    ("⌘+S - save a copy of the opened file as a PNG file\n","ru_RU",
+        "⌘+S - сохранить копию изображения в формате PNG\n"),\
+    ("⌘+C - save a copy of the opened file\n","ru_RU",
+        "⌘+C - сохранить копию исходного файла\n"),\
+    ("⌘+R - rotate 90 degrees clockwise\n","ru_RU",
+        "⌘+R - поворот на 90 градусов по часовой стрелке\n"),\
+    ("⌘+L - rotate 90 degrees counterclockwise\n","ru_RU",
+        "⌘+L - поворот на 90 градусов против часовой стрелки\n"),\
+    ("⌘+F - toggle full screen mode\n","ru_RU",
+        "⌘+F - включить/выключить полноэкранный режим\n"),\
+    ("⌘+T - toggle 'stay on top' mode\n","ru_RU",
+        "⌘+T - включить/выключить режим 'поверх остальных'\n"),\
+    ("⌘+Left,Home - jump to the first image in folder\n","ru_RU",
+        "⌘+Left,Home - перейти к первому изображению в папке\n"),\
+    ("⌘+Right,End - jump to the last image in folder\n","ru_RU",
+        "⌘+Right,End - перейти к последнему изображению в папке\n"),\
     ("+ - zoom in (up to 100%)\n","ru_RU","+ - увеличить (не более чем до 100%)\n"),\
     ("- - zoom out (down to the smallest available size)\n","ru_RU",
         "- - уменьшить (до минимального доступного размера)\n"),\
@@ -354,7 +354,7 @@ class DFrame(wx.Frame):
         if osflag: self.Update()
         else: self.Refresh()
     def deftitle(self):
-        self.stitle(_('Press Ctrl+O to open BPG file...'))
+        self.stitle(_('Press ⌘+O to open BPG file...'))
     def getcsize(self):
         cr=wx.Display().GetClientArea()
         if osflag:
@@ -756,15 +756,15 @@ class DFrame(wx.Frame):
             if keycode==wx.WXK_F1:
                 wx.MessageBox(_('This is BPG image file viewer. Hot keys:\n')+\
                 _('Esc - close\n')+\
-                _('Ctrl+O - open BPG image file\n')+\
-                _('Ctrl+S - save a copy of the opened file as a PNG file\n')+\
-                _('Ctrl+C - save a copy of the opened file\n')+\
-                _('Ctrl+R - rotate 90 degrees clockwise\n')+\
-                _('Ctrl+L - rotate 90 degrees counterclockwise\n')+\
-                _('Ctrl+F - toggle full screen mode\n')+\
-                _('Ctrl+T - toggle \'stay on top\' mode\n')+\
-                _('Ctrl+Left,Home - jump to the first image in folder\n')+\
-                _('Ctrl+Right,End - jump to the last image in folder\n')+\
+                _('⌘+O - open BPG image file\n')+\
+                _('⌘+S - save a copy of the opened file as a PNG file\n')+\
+                _('⌘+C - save a copy of the opened file\n')+\
+                _('⌘+R - rotate 90 degrees clockwise\n')+\
+                _('⌘+L - rotate 90 degrees counterclockwise\n')+\
+                _('⌘+F - toggle full screen mode\n')+\
+                _('⌘+T - toggle \'stay on top\' mode\n')+\
+                _('⌘+Left,Home - jump to the first image in folder\n')+\
+                _('⌘+Right,End - jump to the last image in folder\n')+\
                 _('+ - zoom in (up to 100%)\n')+\
                 _('- - zoom out (down to the smallest available size)\n')+\
                 _('* - zoom out to fit window area\n')+\
