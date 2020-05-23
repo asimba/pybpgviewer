@@ -26,6 +26,7 @@ _Notes:_
 - in Ubuntu 20.04 environment you can try [x86-64 package](https://github.com/asimba/pybpgviewer/releases/download/v1.27/bpgviewer-1.27-ubuntu-20.04-amd64.deb).  
 - in MS Windows (Windows 7/Windows 8.1/Windows 10 32/64) environment you can use [statically linked x86 package](https://github.com/asimba/pybpgviewer/releases/download/v1.26/bpgviewer-1.26-win32-portable.7z) / [statically linked x64 package](https://github.com/asimba/pybpgviewer/releases/download/v1.27/bpgviewer-1.27-win64-portable.7z) portable version or try the [x86 installer](https://github.com/asimba/pybpgviewer/releases/download/v1.26/bpgviewer-1.26-win32-setup.exe) / [x64 installer](https://github.com/asimba/pybpgviewer/releases/download/v1.27/bpgviewer-1.27-win64-setup.exe).  
 - in macOS 10.13 environment you can try [x86-64 package](https://github.com/asimba/pybpgviewer/releases/download/v1.26/bpgviewer-1.26-macos-10.13.dmg) (Note: to enable thumbnail generation in Finder you may have to reboot your system).  
+- in macOS 10.15 environment you can try [x86-64 package](https://github.com/asimba/pybpgviewer/releases/download/v1.27/bpgviewer-1.27-macos-10.15.dmg) (Note: no thumbnails generation in Finder).  
 - embedded translations: Russian,English  
 - thumbnails preview in Nautilus/Thunar (tested Ubuntu/Xubuntu 17.10/18.04/20.04 only)  
 - thumbnails preview in Dolphin (KDE 5) (tested Kubuntu 17.10/18.04/20.04) (don't forget to turn on BPG preview in Dolphin settings after package installation)  
