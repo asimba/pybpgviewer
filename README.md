@@ -11,10 +11,9 @@ _**If you wish, you may donate some BTC to:**_ 1NLW4Si8E4pSetVfAUEWMUAeC16rYnqFb
 _Dependencies of the source script (viewer only):_  
 
 ---  
-* patched version of [bpgdec](http://bellard.org/bpg/) (diff file supplied)  
 * [python 3.x.x](https://www.python.org/)  
 * [wxPython 4.x.x.x](http://www.wxpython.org/)  
-* [Python Imaging Library (PIL) 1.1.7](http://www.pythonware.com/products/pil/) (or [Pillow 3.x.x](https://pillow.readthedocs.org/) at Ubuntu/Xubuntu 16.04)  
+* [Python Imaging Library (PIL) 1.1.7](http://www.pythonware.com/products/pil/) (or [Pillow](https://pillow.readthedocs.org/) at Ubuntu/Xubuntu)  
 * [Python for Windows Extensions](http://sourceforge.net/projects/pywin32/) (for Windows version only)
 
 ---
@@ -35,12 +34,6 @@ _Notes:_
 
 _Ubuntu/Xubuntu 17.10/18.04/20.04 Notes:_  
 * You may need to run "sudo apt-get -f install" after package installation.  
-
-_Linux Mint "Rafaela" (Mate) Notes:_  
-* To enable image thumbnail preview in Thunar you must install additionally thumbler (D-Bus thumbnailing service) and restart Thunar.  
-* To enable image thumbnail preview in Dolphin:  
-  a) install following packages: kfind, baloo, kdebase-apps, kde-runtime  
-  b) in Dolphin go to Control->General->Previews and enable "BPG image files" then press "Ok"  
 
 ---
 _Hot keys (use 'Cmd' key instead of 'Ctrl' in macOS):_  
