@@ -14,6 +14,7 @@ WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 #pragma comment(lib, "gdi32")
 
 #include "bpgthumbnailer.h"
+#include "base_resample.h"
 
 extern long g_cDllRef;
 extern HINSTANCE g_hInst;
@@ -100,6 +101,19 @@ IFACEMETHODIMP BPGThumbnailProvider::Initialize(IStream *pStream, DWORD grfMode)
 
 #pragma region IThumbnailProvider
 
+
+void swap(char* buffer, int w, int h) {
+	int k = w * h * 3 - 1, s = w * h - 1;
+	unsigned char swp[4];
+	swp[3] = 0;
+	while (k > 0) {
+		swp[0] = buffer[k--];
+		swp[1] = buffer[k--];
+		swp[2] = buffer[k--];
+		((int*)buffer)[s--] = *(int*)swp;
+	}
+}
+
 IFACEMETHODIMP BPGThumbnailProvider::GetThumbnail(UINT cx, HBITMAP *phbmp, WTS_ALPHATYPE *pdwAlpha) {
 	*phbmp = NULL;
 	*pdwAlpha = WTSAT_UNKNOWN;
@@ -130,21 +144,30 @@ IFACEMETHODIMP BPGThumbnailProvider::GetThumbnail(UINT cx, HBITMAP *phbmp, WTS_A
 	}
 	int w = 0, h = 0;
 	if (bpgdec_buffer_getwh(buffer, bsize, w, h)) {
-		char *imgbuffer = new char[w*h * 4];
+		char* imgbuffer = new char[w * h * 4];
 		if (imgbuffer) {
 			if (bpgdec_buffer(buffer, bsize, imgbuffer, w, h)) {
-				int k = w * h * 3 - 1, s = w * h - 1;
-				unsigned char swp[4];
-				swp[3] = 0;
-				while (k > 0) {
-					swp[0] = imgbuffer[k--];
-					swp[1] = imgbuffer[k--];
-					swp[2] = imgbuffer[k--];
-					((int *)imgbuffer)[s--] = *(int *)swp;
+				int l = (w >= h) ? w : h;
+				cx = (cx > 2560) ? cx : 2560;
+				if (l > (int)cx) {
+					double f = (double)cx / (double)l;
+					int nw = (int)((double)w * f), nh = (int)((double)h * f);
+					char *tmpbuffer = new char[nw * nh * 4];
+					if (tmpbuffer) {
+						base::ResampleImage24((uint8_t*)imgbuffer, w, h, (uint8_t*)tmpbuffer, nw, nh, base::KernelTypeBicubic);
+						swap(tmpbuffer, nw, nh);
+						*phbmp = (HBITMAP)CreateBitmap(nw, nh, 1, 32, (BYTE*)tmpbuffer);
+						delete[] tmpbuffer;
+					}
+					else rflag = E_FAIL;
 				}
-				*phbmp = (HBITMAP)CreateBitmap(w, h, 1, 32, (BYTE *)imgbuffer);
+				else {
+					swap(imgbuffer, w, h);
+					*phbmp = (HBITMAP)CreateBitmap(w, h, 1, 32, (BYTE*)imgbuffer);
+				}
 			}
-			delete imgbuffer;
+			else rflag = E_FAIL;
+			delete[] imgbuffer;
 			rflag = NOERROR;
 		}
 		else rflag = E_FAIL;

@@ -19,6 +19,7 @@ WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 #include <shlobj.h>
 #include <stdint.h>
 #include "bpgdec.h"
+
 #pragma comment(lib,"Shlwapi.lib")
 #pragma comment(lib,"bpgdec.lib")
 
