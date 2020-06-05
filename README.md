@@ -13,7 +13,7 @@ _Dependencies of the source script (viewer only):_
 ---  
 * [python 3.x.x](https://www.python.org/)  
 * [wxPython 4.x.x.x](http://www.wxpython.org/)  
-* [Python Imaging Library (PIL) 1.1.7](http://www.pythonware.com/products/pil/) (or [Pillow](https://pillow.readthedocs.org/) at Ubuntu/Xubuntu)  
+* [Pillow](https://pillow.readthedocs.org/) at Ubuntu/Xubuntu)  
 * [Python for Windows Extensions](http://sourceforge.net/projects/pywin32/) (for Windows version only)
 
 ---
