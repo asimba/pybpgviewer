@@ -1,5 +1,5 @@
-Bulid string for x86-64:
-x86_64-w64-mingw32-g++ -m64 -s -shared -static-libgcc -o bpgdec.dll -Wl,--out-implib,bpgdec.a,--output-def,bpgdec.def bpgdec.cc -lbpg -DBUILD_DLL
+Build string for x86-64:
+x86_64-w64-mingw32-g++ -m64 -s -shared -static-libgcc -o bpgdec.dll -Wl,--out-implib,bpgdec.lib,--output-def,bpgdec.def bpgdec.cc -lbpg -DBUILD_DLL
 
-Bulid string for x86:
-i686-w64-mingw32-g++ -m32 -s -shared -static-libgcc -o bpgdec.dll -Wl,--out-implib,bpgdec.a,--output-def,bpgdec.def bpgdec.cc -lbpg -DBUILD_DLL
+Build string for x86:
+i686-w64-mingw32-g++ -m32 -s -shared -static-libgcc -o bpgdec.dll -Wl,--out-implib,bpgdec.lib,--output-def,bpgdec.def bpgdec.cc -lbpg -DBUILD_DLL
