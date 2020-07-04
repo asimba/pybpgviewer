@@ -389,7 +389,7 @@ class DFrame(wx.Frame):
             self.frames_index+=1
             if self.frames_index==len(self.frames): self.frames_index=0
             self.showsingleframe(self.frames[self.frames_index][0])
-            self.frame_timer.Start(self.frames[self.frames_index][1],
+            self.frame_timer.Start(int(self.frames[self.frames_index][1]),
                 wx.TIMER_ONE_SHOT)
     def showframes(self):
         self.bitmap._clear=True
@@ -397,7 +397,7 @@ class DFrame(wx.Frame):
         else:
             bitmap=self.frames[0][0]
             self.showsingleframe(bitmap)
-            self.frame_timer.Start(self.frames[self.frames_index][1],
+            self.frame_timer.Start(int(self.frames[self.frames_index][1]),
                 wx.TIMER_ONE_SHOT)
     def showbitmap(self,bitmap):
         self.bitmap._clear=True
