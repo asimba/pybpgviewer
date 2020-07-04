@@ -139,11 +139,13 @@ DLL_EXPORT uint8_t *bpg_to_rgba_view(const char *filename,int *rsize){
               if(free_size<=0){
                 size+=page_size;
                 free_size+=page_size;
+                int shift=(int)(write_ptr-ret);
                 ret=(uint8_t *)realloc(ret,size);
                 if(!ret){
                   size=0;
                   break;
                 };
+                write_ptr=ret+shift;
               };
               bpg_decoder_get_frame_duration(img,&pnum,&pden);
               memcpy(write_ptr,&pnum,sizeof(int));
