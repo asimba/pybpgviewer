@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS  = `pkg-config --cflags --libs gdk-pixbuf-2.0` -s -O2 -lm -lbpg
+CFLAGS  = `pkg-config --cflags --libs gdk-pixbuf-2.0` -s -O2 -lm -lbpgdec
 
 TARGET = bpg-thumbnailer
 
