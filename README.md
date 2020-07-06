@@ -8,7 +8,7 @@ _**If you wish, you may donate some BTC to:**_ 1NLW4Si8E4pSetVfAUEWMUAeC16rYnqFb
   
 ---  
 
-_Dependencies of the source script (viewer only):_  
+_Dependencies of the source script(viewer only):_  
 
 ---  
 * [python 3.x.x](https://www.python.org/)  
